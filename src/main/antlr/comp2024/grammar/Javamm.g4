@@ -57,10 +57,10 @@ importDecl
 
 classDecl
     : CLASS name=ID
-        (EXTENDS name=ID)?
+        (EXTENDS parentClassName=ID)?
         LCURLY
-        varDecl*
-        methodDecl*
+        varDecl* // nomes ?
+        methodDecl* // nomes ?
         RCURLY
     ;
 
@@ -72,20 +72,20 @@ methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
         type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
+        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY #returningMethod
     | (PUBLIC {$isPublic=true;})?
         STATIC VOID MAIN
         LPAREN STRING LSQUARE RSQUARE name=ID RPAREN
-        LCURLY varDecl* stmt* RCURLY
+        LCURLY varDecl* stmt* RCURLY #nonReturningMethod
     ;
 
 type
-    : name=INT LSQUARE RSQUARE
-    | name=INT DOT DOT DOT
-    | name=BOOL
-    | name=INT
-    | name=ID
-    | name=STRING // <- prof
+    : name=INT LSQUARE RSQUARE #intArray
+    | name=INT DOT DOT DOT #vararg
+    | name=BOOL #bool
+    | name=INT #int // <- o teste falha ?
+    | name=ID #customType
+    | name=STRING #string // <- prof
     ;
 
 param
@@ -93,33 +93,30 @@ param
     ;
 
 stmt
-    : LCURLY stmt* RCURLY
-    | IF LPAREN expr RPAREN stmt ELSE stmt
-    | WHILE LPAREN expr RPAREN stmt
-    | expr SEMI
-    | name=ID EQUALS expr SEMI
-    | name=ID LSQUARE expr RSQUARE EQUALS expr SEMI
+    : LCURLY stmt* RCURLY #stmtBlock
+    | IF LPAREN expr RPAREN stmt ELSE stmt #ifElse
+    | WHILE LPAREN expr RPAREN stmt #while
+    | expr SEMI #simpleExpr
+    | name=ID EQUALS expr SEMI #assignment
+    | name=ID LSQUARE expr RSQUARE EQUALS expr SEMI #arrayAssignment
     ;
 
 expr
-    : LPAREN expr RPAREN
-    | NOT expr
-    | expr op=(MUL | DIV) expr
-    | expr op=(ADD | SUB) expr
-    | expr op=LT expr
-    | expr op=AND expr
-    | expr LSQUARE expr RSQUARE
-    | expr DOT LENGTH
-    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN
-    | NEW INT LSQUARE expr RSQUARE
-    | NEW name=ID LPAREN RPAREN
-    | LSQUARE (expr (COMMA expr)*)? RSQUARE
-    | INTEGER
-    | TRUE
-    | FALSE
-    | name=ID
-    | THIS
+    : LPAREN expr RPAREN #exprBlock
+    | NOT expr #unaryOp
+    | expr op=(MUL | DIV) expr #binaryOp
+    | expr op=(ADD | SUB) expr #binaryOp
+    | expr op=LT expr #binaryOp
+    | expr op=AND expr #binaryOp
+    | expr LSQUARE expr RSQUARE #index
+    | expr DOT LENGTH #length
+    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #methodCall
+    | NEW INT LSQUARE expr RSQUARE #newArray
+    | NEW name=ID LPAREN RPAREN #newObject
+    | LSQUARE (expr (COMMA expr)*)? RSQUARE #array
+    | INTEGER #integer
+    | TRUE #boolean
+    | FALSE #boolean
+    | name=ID #identifier
+    | THIS #this
     ;
-
-
-

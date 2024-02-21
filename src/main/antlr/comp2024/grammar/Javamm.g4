@@ -21,6 +21,7 @@ LT : '<' ;
 NOT : '!' ;
 DOT : '.' ;
 COMMA : ',' ;
+THREEDOTS : '...' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -81,7 +82,7 @@ methodDecl locals[boolean isPublic=false]
 
 type
     : name=INT LSQUARE RSQUARE #IntArrayType
-    | name=INT DOT DOT DOT #VarargTyoe
+    | name=INT THREEDOTS #VarargTyoe
     | name=BOOL #BoolType
     | name=INT #IntType // <- o teste falha ?
     | name=ID #CustomType

@@ -12,19 +12,28 @@ import java.util.Map;
 
 public class JmmSymbolTable implements SymbolTable {
 
+    private final List<String> imports;
     private final String className;
+    private final String superclassName;
+    private final List<Symbol> fields;
     private final List<String> methods;
     private final Map<String, Type> returnTypes;
     private final Map<String, List<Symbol>> params;
     private final Map<String, List<Symbol>> locals;
 
-    public JmmSymbolTable(String className,
+    public JmmSymbolTable(List<String> imports,
+                          String className,
+                          String superclassName,
+                          List<Symbol> fields,
                           List<String> methods,
                           Map<String, Type> returnTypes,
                           Map<String, List<Symbol>> params,
                           Map<String, List<Symbol>> locals) {
+        this.imports = imports;
         this.className = className;
+        this.superclassName = superclassName;
         this.methods = methods;
+        this.fields = fields;
         this.returnTypes = returnTypes;
         this.params = params;
         this.locals = locals;
@@ -32,7 +41,7 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public List<String> getImports() {
-        throw new NotImplementedException();
+        return Collections.unmodifiableList(imports);
     }
 
     @Override
@@ -42,12 +51,12 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public String getSuper() {
-        throw new NotImplementedException();
+        return superclassName;
     }
 
     @Override
     public List<Symbol> getFields() {
-        throw new NotImplementedException();
+        return Collections.unmodifiableList(fields);
     }
 
     @Override

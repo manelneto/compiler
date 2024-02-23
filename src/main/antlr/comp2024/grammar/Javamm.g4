@@ -44,16 +44,18 @@ THIS : 'this' ;
 TRUE : 'true' ;
 FALSE : 'false' ;
 INTEGER : [0-9]+ ;
-ID : [a-zA-Z][0-9a-zA-Z_]* ; // falta o dolar
+ID : [a-zA-Z][0-9a-zA-Z_$]* ; //dolar
 
 WS : [ \t\n\r\f]+ -> skip ;
+MULTICOMMENTS : '/*' (ID | WS)* '*/' -> skip ;
+SINGLECOMMENT : '//' (ID | [ \t\r\f])* [\n] -> skip ;
 
 program
     : importDecl* classDecl EOF
     ;
 
 importDecl
-    : IMPORT name=ID (DOT name=ID)* SEMI
+    : IMPORT name=ID (DOT name=ID)* SEMI // name 2 vezes? como tratar tudo?
     ;
 
 classDecl
@@ -73,20 +75,20 @@ methodDecl locals[boolean isPublic=false]
     : (PUBLIC {$isPublic=true;})?
         type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY #ReturningMethod
+        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY // #ReturningMethod
     | (PUBLIC {$isPublic=true;})?
         STATIC VOID MAIN
         LPAREN STRING LSQUARE RSQUARE name=ID RPAREN
-        LCURLY varDecl* stmt* RCURLY #NonReturningMethod
+        LCURLY varDecl* stmt* RCURLY // #NonReturningMethod
     ;
 
 type
-    : name=INT LSQUARE RSQUARE #IntArrayType
-    | name=INT THREEDOTS #VarargTyoe
-    | name=BOOL #BoolType
-    | name=INT #IntType // <- o teste falha ?
-    | name=ID #CustomType
-    | name=STRING #StringType // <- prof
+    : name=INT LSQUARE RSQUARE // #IntArrayType
+    | name=INT THREEDOTS // #VarargTyoe
+    | name=BOOL // #BoolType
+    | name=INT // #IntType // <- o teste falha ?
+    | name=ID // #CustomType
+    | name=STRING // #StringType // <- prof
     ;
 
 param
@@ -100,11 +102,11 @@ stmt
     | expr SEMI #SimpleStmt
     | name=ID EQUALS expr SEMI #AssignStmt
     | name=ID LSQUARE expr RSQUARE EQUALS expr SEMI #ArrayAssignStmt
-  //  | RETURN expr SEMI #ReturnStmt
+    | RETURN expr SEMI #ReturnStmt
     ;
 
 expr
-    : LPAREN expr RPAREN #ExprBlock
+    : LPAREN expr RPAREN #ParenExpr
     | NOT expr #UnaryExpr
     | expr op=(MUL | DIV) expr #BinaryExpr
     | expr op=(ADD | SUB) expr #BinaryExpr

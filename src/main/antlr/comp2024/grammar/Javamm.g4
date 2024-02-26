@@ -107,16 +107,16 @@ stmt
 
 expr
     : LPAREN expr RPAREN #ParenExpr
+    | expr LSQUARE expr RSQUARE #ArrayAccess
+    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MemberAccess
+    | expr DOT LENGTH #Length
     | NOT expr #UnaryExpr
+    | NEW name=ID LPAREN RPAREN #NewObject
+    | NEW INT LSQUARE expr RSQUARE #NewArray
     | expr op=(MUL | DIV) expr #BinaryExpr
     | expr op=(ADD | SUB) expr #BinaryExpr
     | expr op=LT expr #BinaryExpr
     | expr op=AND expr #BinaryExpr
-    | expr LSQUARE expr RSQUARE #Index
-    | expr DOT LENGTH #Length
-    | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MethodCall
-    | NEW INT LSQUARE expr RSQUARE #NewArray
-    | NEW name=ID LPAREN RPAREN #NewObject
     | LSQUARE (expr (COMMA expr)*)? RSQUARE #Array
     | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral

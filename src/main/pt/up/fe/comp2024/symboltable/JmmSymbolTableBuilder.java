@@ -59,10 +59,10 @@ public class JmmSymbolTableBuilder {
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
             if (method.getObject("isVoid", Boolean.class)) {
-                map.put(method.get("name"), TypeUtils.getVoidType());
+                map.put("main", TypeUtils.getVoidType());
             } else {
                 var nodeType = method.getChild(0);
-                Type type = new Type(nodeType.get("name"), nodeType.hasAttribute("isArray"));
+                Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
                 map.put(method.get("name"), type);
             }
         }
@@ -82,7 +82,7 @@ public class JmmSymbolTableBuilder {
                 List<Symbol> params = new ArrayList<>();
                 for (JmmNode param : method.getChildren(PARAM)) {
                     var nodeType = param.getChild(0);
-                    Type type = new Type(nodeType.get("name"), nodeType.hasAttribute("isArray"));
+                    Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
                     params.add(new Symbol(type, param.get("name")));
                 }
                 map.put(method.get("name"), params);
@@ -111,10 +111,20 @@ public class JmmSymbolTableBuilder {
     }
 
     private static List<String> buildMethods(JmmNode classDecl) {
+        List<String> methods = new ArrayList<>();
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
+            if (method.getObject("isVoid", Boolean.class)) {
+                methods.add("main");
+            } else {
+                methods.add(method.get("name"));
+            }
+        }
 
+        return methods;
+        /*
         return classDecl.getChildren(METHOD_DECL).stream()
                 .map(method -> method.get("name"))
-                .toList();
+                .toList();*/
     }
 
 

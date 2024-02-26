@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 public class TypeUtils {
 
     private static final String INT_TYPE_NAME = "int";
+    private static final String VOID_TYPE_NAME = "void";
 
     public static String getIntTypeName() {
         return INT_TYPE_NAME;
@@ -52,6 +53,9 @@ public class TypeUtils {
         return new Type(INT_TYPE_NAME, false);
     }
 
+    public static Type getVoidType() {
+        return new Type(VOID_TYPE_NAME, false);
+    }
 
     /**
      * @param sourceType

@@ -21,12 +21,12 @@ LT : '<' ;
 NOT : '!' ;
 DOT : '.' ;
 COMMA : ',' ;
-THREEDOTS : '...' ;
+ELYPSIS : '...' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
 STRING : 'String' ;
-BOOL : 'boolean' ;
+BOOLEAN : 'boolean' ;
 PUBLIC : 'public' ;
 STATIC : 'static' ;
 VOID : 'void' ;
@@ -44,7 +44,7 @@ THIS : 'this' ;
 TRUE : 'true' ;
 FALSE : 'false' ;
 INTEGER : [0-9]+ ;
-ID : [a-zA-Z][0-9a-zA-Z_$]* ; //dolar
+ID : [a-zA-Z][0-9a-zA-Z_$]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
 MULTICOMMENTS : '/*' (ID | WS)* '*/' -> skip ;
@@ -55,7 +55,7 @@ program
     ;
 
 importDecl
-    : IMPORT name=ID (DOT name=ID)* SEMI // name 2 vezes? como tratar tudo?
+    : IMPORT name+=ID (DOT name+=ID)* SEMI
     ;
 
 classDecl
@@ -71,24 +71,24 @@ varDecl
     : type name=ID SEMI
     ;
 
-methodDecl locals[boolean isPublic=false]
+methodDecl locals[boolean isPublic=false, boolean isVoid=false]
     : (PUBLIC {$isPublic=true;})?
         type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY // #ReturningMethod
+        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
     | (PUBLIC {$isPublic=true;})?
         STATIC VOID MAIN
         LPAREN STRING LSQUARE RSQUARE name=ID RPAREN
-        LCURLY varDecl* stmt* RCURLY // #NonReturningMethod
+        LCURLY varDecl* stmt* RCURLY {$isVoid=true;}
     ;
 
-type
-    : name=INT LSQUARE RSQUARE // #IntArrayType
-    | name=INT THREEDOTS // #VarargTyoe
-    | name=BOOL // #BoolType
-    | name=INT // #IntType // <- o teste falha ?
-    | name=ID // #CustomType
-    | name=STRING // #StringType // <- prof
+type locals[boolean isArray=false, boolean isElypsis=false]
+    : name=INT LSQUARE RSQUARE {$isArray=true;}
+    | name=INT ELYPSIS {$isArray=true; $isElypsis=true;}
+    | name=BOOLEAN
+    | name=INT
+    | name=ID
+    | name=STRING
     ;
 
 param

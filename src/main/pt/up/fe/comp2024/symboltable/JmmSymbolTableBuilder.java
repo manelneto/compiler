@@ -7,10 +7,12 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 import pt.up.fe.specs.util.SpecsCheck;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-import static pt.up.fe.comp2024.ast.Kind.METHOD_DECL;
-import static pt.up.fe.comp2024.ast.Kind.VAR_DECL;
+import static pt.up.fe.comp2024.ast.Kind.*;
 
 public class JmmSymbolTableBuilder {
 
@@ -26,7 +28,7 @@ public class JmmSymbolTableBuilder {
         SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
         String className = classDecl.get("name");
 
-        String superclassName;
+        String superclassName; // TODO
         try {
             superclassName = classDecl.get("parentClassName");
         } catch (NullPointerException e) {
@@ -55,8 +57,15 @@ public class JmmSymbolTableBuilder {
 
         Map<String, Type> map = new HashMap<>();
 
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), new Type(method.get("name"), false)));
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
+            if (method.getObject("isVoid", Boolean.class)) {
+                map.put(method.get("name"), TypeUtils.getVoidType());
+            } else {
+                var nodeType = method.getChild(0);
+                Type type = new Type(nodeType.get("name"), nodeType.hasAttribute("isArray"));
+                map.put(method.get("name"), type);
+            }
+        }
 
         return map;
     }
@@ -66,10 +75,19 @@ public class JmmSymbolTableBuilder {
 
         Map<String, List<Symbol>> map = new HashMap<>();
 
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
-
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), Arrays.asList(new Symbol(intType, method.getJmmChild(1).get("name")))));
+        for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
+            if (method.getObject("isVoid", Boolean.class)) {
+                map.put("main", List.of(new Symbol(TypeUtils.getVoidType(), method.get("name"))));
+            } else {
+                List<Symbol> params = new ArrayList<>();
+                for (JmmNode param : method.getChildren(PARAM)) {
+                    var nodeType = param.getChild(0);
+                    Type type = new Type(nodeType.get("name"), nodeType.hasAttribute("isArray"));
+                    params.add(new Symbol(type, param.get("name")));
+                }
+                map.put(method.get("name"), params);
+            }
+        }
 
         return map;
     }

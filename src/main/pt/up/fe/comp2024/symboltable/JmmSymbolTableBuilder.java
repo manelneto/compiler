@@ -18,16 +18,16 @@ public class JmmSymbolTableBuilder {
 
 
     public static JmmSymbolTable build(JmmNode root) {
-
         var children = root.getChildren();
         List<JmmNode> importDecls = children.size() > 1 ? children.subList(0, children.size() - 1) : new ArrayList<>();
-        var classDecl = children.get(children.size() - 1);
 
         var imports = buildImports(importDecls);
 
-        SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
-        String className = classDecl.get("name");
+        var classDecl = children.get(children.size() - 1);
 
+        SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
+
+        String className = classDecl.get("name");
         String superclassName = classDecl.getObject("isSubclass", Boolean.class) ? classDecl.get("parentClassName") : "";
 
         var fields = buildFields(classDecl);
@@ -48,8 +48,6 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, Type> map = new HashMap<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
@@ -66,19 +64,17 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, List<Symbol>> map = new HashMap<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
             if (method.getObject("isVoid", Boolean.class)) {
-                map.put("main", List.of(new Symbol(TypeUtils.getVoidType(), method.get("name"))));
+                map.put("main", List.of(new Symbol(TypeUtils.getStringArrayType(), method.get("paramName"))));
             } else {
                 List<Symbol> params = new ArrayList<>();
                 for (JmmNode param : method.getChildren(PARAM)) {
                     var nodeType = param.getChild(0);
                     Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
-                    params.add(new Symbol(type, param.get("name")));
+                    params.add(new Symbol(type, param.get("paramName")));
                 }
                 map.put(method.get("name"), params);
             }
@@ -100,26 +96,22 @@ public class JmmSymbolTableBuilder {
     }
 
     private static List<Symbol> buildFields(JmmNode classDecl) {
-        return classDecl.getChildren(VAR_DECL).stream()
-                .map(method -> new Symbol(new Type(method.getChild(0).get("name"), method.getChild(0).getChildren().size() == 3), method.get("name")))
-                .toList();
+        List<Symbol> fields = new ArrayList<>();
+
+        for (JmmNode field : classDecl.getChildren(VAR_DECL)) {
+            var nodeType = field.getChild(0);
+            Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
+            String name = field.get("name");
+            fields.add(new Symbol(type, name));
+        }
+
+        return fields;
     }
 
     private static List<String> buildMethods(JmmNode classDecl) {
-        List<String> methods = new ArrayList<>();
-        for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
-            if (method.getObject("isVoid", Boolean.class)) {
-                methods.add("main");
-            } else {
-                methods.add(method.get("name"));
-            }
-        }
-
-        return methods;
-        /*
         return classDecl.getChildren(METHOD_DECL).stream()
                 .map(method -> method.get("name"))
-                .toList();*/
+                .toList();
     }
 
 

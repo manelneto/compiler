@@ -84,14 +84,8 @@ public class JmmSymbolTableBuilder {
     }
 
     private static Map<String, List<Symbol>> buildLocals(JmmNode classDecl) {
-        // TODO: Simple implementation that needs to be expanded
-
         Map<String, List<Symbol>> map = new HashMap<>();
-
-
-        classDecl.getChildren(METHOD_DECL).stream()
-                .forEach(method -> map.put(method.get("name"), getLocalsList(method)));
-
+        classDecl.getChildren(METHOD_DECL).forEach(method -> map.put(method.get("name"), getLocalsList(method)));
         return map;
     }
 
@@ -116,13 +110,16 @@ public class JmmSymbolTableBuilder {
 
 
     private static List<Symbol> getLocalsList(JmmNode methodDecl) {
-        // TODO: Simple implementation that needs to be expanded
+        List<Symbol> localsList = new ArrayList<>();
 
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
+        for (JmmNode local : methodDecl.getChildren(VAR_DECL)) {
+            var nodeType = local.getChild(0);
+            Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
+            String name = local.get("name");
+            localsList.add(new Symbol(type, name));
+        }
 
-        return methodDecl.getChildren(VAR_DECL).stream()
-                .map(varDecl -> new Symbol(intType, varDecl.get("name")))
-                .toList();
+        return localsList;
     }
 
 }

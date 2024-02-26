@@ -28,12 +28,7 @@ public class JmmSymbolTableBuilder {
         SpecsCheck.checkArgument(Kind.CLASS_DECL.check(classDecl), () -> "Expected a class declaration: " + classDecl);
         String className = classDecl.get("name");
 
-        String superclassName; // TODO
-        try {
-            superclassName = classDecl.get("parentClassName");
-        } catch (NullPointerException e) {
-            superclassName = "";
-        }
+        String superclassName = classDecl.getObject("isSubclass", Boolean.class) ? classDecl.get("parentClassName") : "";
 
         var fields = buildFields(classDecl);
         var methods = buildMethods(classDecl);

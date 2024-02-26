@@ -58,12 +58,12 @@ importDecl
     : IMPORT name+=ID (DOT name+=ID)* SEMI
     ;
 
-classDecl
+classDecl locals[boolean isSubclass=false]
     : CLASS name=ID
-        (EXTENDS parentClassName=ID)?
+        (EXTENDS parentClassName=ID {$isSubclass=true;})?
         LCURLY
-        varDecl* // nomes ?
-        methodDecl* // nomes ?
+        varDecl*
+        methodDecl*
         RCURLY
     ;
 

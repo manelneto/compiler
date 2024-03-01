@@ -87,6 +87,7 @@ type locals[boolean isArray=false, boolean isElypsis=false]
     | name=INT ELYPSIS {$isArray=true; $isElypsis=true;}
     | name=BOOLEAN
     | name=INT
+    | name=MAIN
     | name=ID
     | name=STRING
     ;

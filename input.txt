@@ -1,6 +1,7 @@
 class Factorial {
+    main var;
+
     public static void main(String[] args){
-        int id ;
-        int id ;
+        return var;
     }
 }

@@ -1,7 +1,7 @@
 class Factorial {
-    main var;
+    int main;
 
     public static void main(String[] args){
-        return var;
+        return main;
     }
 }

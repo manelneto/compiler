@@ -68,7 +68,7 @@ classDecl locals[boolean isSubclass=false]
     ;
 
 varDecl
-    : type name=ID SEMI
+    : type name=(ID|MAIN) SEMI
     ;
 
 methodDecl locals[boolean isPublic=false, boolean isVoid=false]
@@ -87,7 +87,6 @@ type locals[boolean isArray=false, boolean isElypsis=false]
     | name=INT ELYPSIS {$isArray=true; $isElypsis=true;}
     | name=BOOLEAN
     | name=INT
-    | name=MAIN
     | name=ID
     | name=STRING
     ;
@@ -122,6 +121,6 @@ expr
     | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral
     | value=FALSE #BooleanLiteral
-    | name=ID #VarRefExpr
+    | name=(ID|MAIN) #VarRefExpr
     | THIS #This
     ;

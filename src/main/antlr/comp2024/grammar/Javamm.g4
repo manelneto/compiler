@@ -47,8 +47,8 @@ INTEGER : [0-9]+ ;
 ID : [a-zA-Z][0-9a-zA-Z_$]* ;
 
 WS : [ \t\n\r\f]+ -> skip ;
-MULTICOMMENTS : '/*' (ID | WS)* '*/' -> skip ;
-SINGLECOMMENT : '//' (ID | [ \t\r\f])* [\n] -> skip ;
+MULTICOMMENTS : '/*' .*? '*/' -> skip ;
+SINGLECOMMENT : '//' .*? [\n] -> skip ;
 
 program
     : importDecl* classDecl EOF

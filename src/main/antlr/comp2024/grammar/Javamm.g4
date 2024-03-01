@@ -121,6 +121,6 @@ expr
     | value=INTEGER #IntegerLiteral
     | value=TRUE #BooleanLiteral
     | value=FALSE #BooleanLiteral
-    | name=(ID|MAIN) #VarRefExpr
+    | name=ID #VarRefExpr
     | THIS #This
     ;

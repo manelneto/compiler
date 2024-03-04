@@ -25,26 +25,25 @@ ELYPSIS : '...' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
-STRING : 'String' ;
 BOOLEAN : 'boolean' ;
 PUBLIC : 'public' ;
 STATIC : 'static' ;
 VOID : 'void' ;
-MAIN : 'main' ;
 RETURN : 'return' ;
 IMPORT : 'import' ;
 EXTENDS : 'extends' ;
 IF : 'if' ;
 ELSE : 'else' ;
 WHILE : 'while' ;
-LENGTH : 'length' ;
 NEW : 'new' ;
 THIS : 'this' ;
 
 TRUE : 'true' ;
 FALSE : 'false' ;
 INTEGER : ('0' | [1-9][0-9]*) ;
-ID : [a-zA-Z_$][0-9a-zA-Z_$]* ;
+ID : ([a-zA-Z_$][0-9a-zA-Z_$]*);
+
+
 
 WS : [ \t\n\r\f]+ -> skip ;
 MULTICOMMENTS : '/*' .*? '*/' -> skip ;
@@ -68,7 +67,7 @@ classDecl locals[boolean isSubclass=false]
     ;
 
 varDecl
-    : type name=(ID|MAIN) SEMI
+    : type name=ID SEMI
     ;
 
 methodDecl locals[boolean isPublic=false, boolean isVoid=false]
@@ -77,8 +76,8 @@ methodDecl locals[boolean isPublic=false, boolean isVoid=false]
         LPAREN (param (COMMA param)*)? RPAREN
         LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
     | (PUBLIC {$isPublic=true;})?
-        STATIC VOID name=MAIN
-        LPAREN STRING LSQUARE RSQUARE paramName=ID RPAREN
+        STATIC VOID name=ID
+        LPAREN ID LSQUARE RSQUARE paramName=ID RPAREN
         LCURLY varDecl* stmt* RCURLY {$isVoid=true;}
     ;
 
@@ -88,7 +87,6 @@ type locals[boolean isArray=false, boolean isElypsis=false]
     | name=BOOLEAN
     | name=INT
     | name=ID
-    | name=STRING
     ;
 
 param
@@ -109,7 +107,7 @@ expr
     : LPAREN expr RPAREN #ParenExpr
     | expr LSQUARE expr RSQUARE #ArrayAccess
     | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #MemberAccess
-    | expr DOT LENGTH #Length
+    | expr DOT ID #Length
     | NOT expr #UnaryExpr
     | NEW name=ID LPAREN RPAREN #NewObject
     | NEW INT LSQUARE expr RSQUARE #NewArray

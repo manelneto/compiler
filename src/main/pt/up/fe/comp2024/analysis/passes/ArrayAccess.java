@@ -25,11 +25,14 @@ public class ArrayAccess extends AnalysisVisitor {
         return null;
     }
 
-    private Void visitArrayAccess(JmmNode array, SymbolTable table) {
-        var child = array.getChild(0);
-        var type = TypeUtils.getExprType(child, table);
+    private Void visitArrayAccess(JmmNode arrayAccess, SymbolTable table) {
+        var array = arrayAccess.getChild(0);
+        var index = arrayAccess.getChild(1);
 
-        if (type.isArray()) {
+        var arrayType = TypeUtils.getExprType(array, table);
+        var indexType = TypeUtils.getExprType(index, table);
+
+        if (arrayType.isArray() && indexType.getName().equals(TypeUtils.getIntTypeName()) && !indexType.isArray()) {
             return null;
         }
 

@@ -22,10 +22,11 @@ public enum Kind {
     INTEGER_LITERAL,
     BOOLEAN_LITERAL,
     ARRAY_ACCESS,
-    VAR_REF_EXPR;
+    VAR_REF_EXPR,
+    THIS;
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, ARRAY_ASSIGN_STMT, RETURN_STMT, IF_ELSE_STMT, WHILE_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR, BOOLEAN_LITERAL);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR, BOOLEAN_LITERAL, THIS);
 
     private final String name;
 

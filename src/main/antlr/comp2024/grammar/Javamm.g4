@@ -54,7 +54,7 @@ program
     ;
 
 importDecl
-    : IMPORT name+=ID (DOT name+=ID)* SEMI
+    : IMPORT (ID DOT)* name=ID SEMI
     ;
 
 classDecl locals[boolean isSubclass=false]

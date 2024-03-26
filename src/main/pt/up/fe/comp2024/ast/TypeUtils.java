@@ -17,6 +17,7 @@ public class TypeUtils {
         return INT_TYPE_NAME;
     }
 
+    public static String getBooleanTypeName() { return BOOLEAN_TYPE_NAME; }
     public static void setCurrentMethod(String currentMethod) {
         TypeUtils.currentMethod = currentMethod;
     }

@@ -9,7 +9,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
-public class IncompatibleTypes extends AnalysisVisitor {
+public class InvalidBinaryOperation extends AnalysisVisitor {
 
     String currentMethod;
 
@@ -30,12 +30,15 @@ public class IncompatibleTypes extends AnalysisVisitor {
 
         TypeUtils.setCurrentMethod(currentMethod); // ?
 
-        if (TypeUtils.getExprType(leftChild, table).equals(TypeUtils.getExprType(rightChild, table))) {
+        var leftType = TypeUtils.getExprType(leftChild, table);
+        var rightType = TypeUtils.getExprType(rightChild, table);
+
+        if (!leftType.isArray() && !rightType.isArray() && leftType.equals(rightType)) {
             return null;
         }
 
         // Create error report
-        var message = String.format("Incompatible types.");
+        var message = "Invalid binary operation.";
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(binaryExpr),

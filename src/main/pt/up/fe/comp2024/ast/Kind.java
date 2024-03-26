@@ -14,6 +14,7 @@ public enum Kind {
     METHOD_DECL,
     PARAM,
     ASSIGN_STMT,
+    ARRAY_ASSIGN_STMT,
     RETURN_STMT,
     BINARY_EXPR,
     INTEGER_LITERAL,
@@ -21,7 +22,7 @@ public enum Kind {
     ARRAY_ACCESS,
     VAR_REF_EXPR;
 
-    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);
+    private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, ARRAY_ASSIGN_STMT, RETURN_STMT);
     private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR, BOOLEAN_LITERAL);
 
     private final String name;

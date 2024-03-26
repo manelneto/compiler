@@ -7,6 +7,7 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.parser.JmmParserResult;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
+import pt.up.fe.comp2024.analysis.passes.ArrayAccess;
 import pt.up.fe.comp2024.analysis.passes.ClassNotImported;
 import pt.up.fe.comp2024.analysis.passes.InvalidBinaryOperation;
 import pt.up.fe.comp2024.analysis.passes.UndeclaredVariable;
@@ -22,7 +23,8 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable(), new ClassNotImported(), new InvalidBinaryOperation());
+        this.analysisPasses = List.of(new UndeclaredVariable(), new ClassNotImported(), new InvalidBinaryOperation(),
+                new ArrayAccess());
 
     }
 

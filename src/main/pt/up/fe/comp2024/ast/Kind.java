@@ -18,6 +18,7 @@ public enum Kind {
     BINARY_EXPR,
     INTEGER_LITERAL,
     BOOLEAN_LITERAL,
+    ARRAY_ACCESS,
     VAR_REF_EXPR;
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, RETURN_STMT);

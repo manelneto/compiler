@@ -21,14 +21,13 @@ public class InvalidBinaryOperation extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
+        TypeUtils.setCurrentMethod(currentMethod); // ?
         return null;
     }
 
     private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
         var leftChild = binaryExpr.getChild(0);
         var rightChild = binaryExpr.getChild(1);
-
-        TypeUtils.setCurrentMethod(currentMethod); // ?
 
         var leftType = TypeUtils.getExprType(leftChild, table);
         var rightType = TypeUtils.getExprType(rightChild, table);

@@ -21,7 +21,7 @@ LT : '<' ;
 NOT : '!' ;
 DOT : '.' ;
 COMMA : ',' ;
-ELYPSIS : '...' ;
+ELLIPSIS : '...' ;
 
 CLASS : 'class' ;
 INT : 'int' ;
@@ -81,9 +81,9 @@ methodDecl locals[boolean isPublic=false, boolean isVoid=false]
         LCURLY varDecl* stmt* RCURLY {$isVoid=true;}
     ;
 
-type locals[boolean isArray=false, boolean isElypsis=false]
+type locals[boolean isArray=false, boolean isEllipsis=false]
     : name=INT LSQUARE RSQUARE {$isArray=true;}
-    | name=INT ELYPSIS {$isArray=true; $isElypsis=true;}
+    | name=INT ELLIPSIS {$isArray=true; $isEllipsis=true;}
     | name=BOOLEAN
     | name=INT
     | name=ID

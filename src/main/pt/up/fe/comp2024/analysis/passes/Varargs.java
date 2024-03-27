@@ -21,7 +21,7 @@ public class Varargs extends AnalysisVisitor {
 
         var paramType = param.getChild(0);
 
-        if (!paramType.getObject("isElypsis", Boolean.class)) {
+        if (!paramType.getObject("isEllipsis", Boolean.class)) {
             return null;
         }
 
@@ -47,7 +47,7 @@ public class Varargs extends AnalysisVisitor {
 
         var varDeclType = varDecl.getChild(0);
 
-        if (!varDeclType.getObject("isElypsis", Boolean.class)) {
+        if (!varDeclType.getObject("isEllipsis", Boolean.class)) {
             return null;
         }
 
@@ -71,7 +71,7 @@ public class Varargs extends AnalysisVisitor {
 
         var returnType = methodDecl.getChild(0);
 
-        if (!returnType.getObject("isElypsis", Boolean.class)) {
+        if (!returnType.getObject("isEllipsis", Boolean.class)) {
             return null;
         }
 

@@ -10,6 +10,7 @@ public class TypeUtils {
     private static final String STRING_TYPE_NAME = "String";
     private static final String VOID_TYPE_NAME = "void";
     private static final String BOOLEAN_TYPE_NAME = "boolean";
+    private static final String THIS_TYPE_NAME = "this";
 
     private static String currentMethod = "";
 
@@ -17,7 +18,10 @@ public class TypeUtils {
         return INT_TYPE_NAME;
     }
 
-    public static String getBooleanTypeName() { return BOOLEAN_TYPE_NAME; }
+    public static String getBooleanTypeName() {
+        return BOOLEAN_TYPE_NAME;
+    }
+
     public static void setCurrentMethod(String currentMethod) {
         TypeUtils.currentMethod = currentMethod;
     }
@@ -39,6 +43,8 @@ public class TypeUtils {
             case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT -> getVarExprType(expr, table);
             case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
+            case THIS -> new Type(THIS_TYPE_NAME, false);
+            case NEW_OBJECT -> new Type(expr.get("name"), false);
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
@@ -87,6 +93,10 @@ public class TypeUtils {
         return new Type(VOID_TYPE_NAME, false);
     }
 
+    public static Type getThisType() {
+        return new Type(THIS_TYPE_NAME, false);
+    }
+
     public static Type getStringArrayType() {
         return new Type(STRING_TYPE_NAME, true);
     }
@@ -96,8 +106,20 @@ public class TypeUtils {
      * @param destinationType
      * @return true if sourceType can be assigned to destinationType
      */
-    public static boolean areTypesAssignable(Type sourceType, Type destinationType) {
+    public static boolean areTypesAssignable(Type sourceType, Type destinationType, SymbolTable table) {
         // TODO: Simple implementation that needs to be expanded
-        return sourceType.getName().equals(destinationType.getName()) && sourceType.isArray() == destinationType.isArray();
+        if (table.getImports().stream().anyMatch(i -> i.equals(sourceType.getName())) && table.getImports().stream().anyMatch(i -> i.equals(destinationType.getName()))) {
+            return true;
+        }
+
+        if (sourceType.getName().equals(destinationType.getName()) && sourceType.isArray() == destinationType.isArray()) {
+            return true;
+        }
+
+        if (table.getSuper().equals(sourceType.getName()) && table.getClassName().equals(destinationType.getName())) {
+            return true;
+        }
+
+        return destinationType.getName().equals(THIS_TYPE_NAME) && (table.getClassName().equals(sourceType.getName()) || table.getSuper().equals(sourceType.getName()));
     }
 }

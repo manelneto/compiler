@@ -28,7 +28,7 @@ public class This extends AnalysisVisitor {
             return null;
         }
 
-        var message = "'This' cannot be used in a static function";
+        var message = "'this' cannot be used in a static function";
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(this_),

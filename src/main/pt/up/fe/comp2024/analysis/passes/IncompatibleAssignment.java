@@ -31,7 +31,7 @@ public class IncompatibleAssignment extends AnalysisVisitor {
         var varType = TypeUtils.getExprType(assignStmt, table);
         var assignValueType = TypeUtils.getExprType(assignValue, table);
 
-        if (TypeUtils.areTypesAssignable(varType, assignValueType)) {
+        if (TypeUtils.areTypesAssignable(varType, assignValueType, table)) {
             return null;
         }
 

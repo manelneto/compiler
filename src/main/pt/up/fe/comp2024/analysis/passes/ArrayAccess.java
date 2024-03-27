@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.report.Report;
 import pt.up.fe.comp.jmm.report.Stage;
@@ -17,6 +18,7 @@ public class ArrayAccess extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ARRAY_ACCESS, this::visitArrayAccess);
+        addVisit(Kind.ARRAY, this::visitArray);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -49,4 +51,22 @@ public class ArrayAccess extends AnalysisVisitor {
         return null;
     }
 
+    private Void visitArray(JmmNode array, SymbolTable table) {
+
+        for (var elem : array.getChildren()) {
+            if (!TypeUtils.getExprType(elem, table).equals(new Type(TypeUtils.getIntTypeName(), false))) {
+                // Create error report
+                var message = "Invalid array elements.";
+                addReport(Report.newError(
+                        Stage.SEMANTIC,
+                        NodeUtils.getLine(array),
+                        NodeUtils.getColumn(array),
+                        message,
+                        null)
+                );
+            }
+        }
+
+        return null;
+    }
 }

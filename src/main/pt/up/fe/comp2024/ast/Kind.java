@@ -24,10 +24,11 @@ public enum Kind {
     ARRAY_ACCESS,
     VAR_REF_EXPR,
     THIS,
-    NEW_OBJECT;
+    NEW_OBJECT,
+    FUNCTION_CALL;
 
     private static final Set<Kind> STATEMENTS = Set.of(ASSIGN_STMT, ARRAY_ASSIGN_STMT, RETURN_STMT, IF_ELSE_STMT, WHILE_STMT);
-    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR, BOOLEAN_LITERAL, THIS, NEW_OBJECT);
+    private static final Set<Kind> EXPRESSIONS = Set.of(BINARY_EXPR, INTEGER_LITERAL, VAR_REF_EXPR, BOOLEAN_LITERAL, THIS, NEW_OBJECT, FUNCTION_CALL);
 
     private final String name;
 

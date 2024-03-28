@@ -74,7 +74,7 @@ methodDecl locals[boolean isPublic=false, boolean isVoid=false]
     : (PUBLIC {$isPublic=true;})?
         type name=ID
         LPAREN (param (COMMA param)*)? RPAREN
-        LCURLY varDecl* stmt* RETURN expr SEMI RCURLY
+        LCURLY varDecl* stmt+ RCURLY
     | (PUBLIC {$isPublic=true;})?
         STATIC VOID name=ID
         LPAREN ID LSQUARE RSQUARE paramName=ID RPAREN

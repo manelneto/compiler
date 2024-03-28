@@ -11,9 +11,19 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Methods extends AnalysisVisitor {
 
+    private String currentMethod;
+
     @Override
     public void buildVisitor() {
+        addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.FUNCTION_CALL, this::visitFunctionCall);
+        addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
+    }
+
+    private Void visitMethodDecl(JmmNode method, SymbolTable table) {
+        currentMethod = method.get("name");
+        TypeUtils.setCurrentMethod(currentMethod); // ?
+        return null;
     }
 
     private Void visitFunctionCall(JmmNode functionCall, SymbolTable table) {
@@ -37,12 +47,13 @@ public class Methods extends AnalysisVisitor {
         var children = functionCall.getChildren();
 
         if (lastParam.getType().getObject("isEllipsis", Boolean.class)) { // com varargs
-            if (children.get(children.size() - 1).getObject("isArray", Boolean.class)) {
+            var lastChild = children.get(children.size() - 1);
+            if (lastChild.getKind().equals(Kind.ARRAY.toString()) || (lastChild.hasAttribute("isArray") && lastChild.getObject("isArray", Boolean.class))) {
                 if (args.size() == children.size() - 1) {
                     for (int i = 1; i < children.size() - 1; i++) {
                         if (!TypeUtils.getExprType(children.get(i), table).equals(args.get(i - 1).getType())) {
                             // Create error report
-                            var message = "Wrong arguments types.";
+                            var message = "Wrong arguments types (with array).";
                             addReport(Report.newError(
                                     Stage.SEMANTIC,
                                     NodeUtils.getLine(functionCall),
@@ -54,9 +65,30 @@ public class Methods extends AnalysisVisitor {
                             return null;
                         }
                     }
+                    return null;
                 }
             } else { //ultimo não é array
+                int j = 0;
+                for (int i = 1; i < children.size(); i++) {
+                    var param = children.get(i);
+                    if ((param.hasAttribute("isArray") && param.getObject("isArray", Boolean.class)) || !TypeUtils.getExprType(param, table).getName().equals(args.get(j).getType().getName())) {
+                        // Create error report
+                        var message = "Wrong arguments types (without array).";
+                        addReport(Report.newError(
+                                Stage.SEMANTIC,
+                                NodeUtils.getLine(functionCall),
+                                NodeUtils.getColumn(functionCall),
+                                message,
+                                null)
+                        );
 
+                        return null;
+                    }
+                    if (j != args.size() - 1) {
+                        j++;
+                    }
+                }
+                return null;
             }
         } else { // sem varargs
 
@@ -76,6 +108,7 @@ public class Methods extends AnalysisVisitor {
                         return null;
                     }
                 }
+                return null;
             }
         }
 
@@ -85,6 +118,35 @@ public class Methods extends AnalysisVisitor {
                 Stage.SEMANTIC,
                 NodeUtils.getLine(functionCall),
                 NodeUtils.getColumn(functionCall),
+                message,
+                null)
+        );
+
+        return null;
+    }
+
+    private Void visitReturnStmt(JmmNode returnStmt, SymbolTable table) {
+
+        var child = returnStmt.getChild(0);
+        if (child.getKind().equals(Kind.FUNCTION_CALL.toString())) {
+            var childType = TypeUtils.getExprType(child.getChild(0), table);
+
+            if (table.getImports().stream().anyMatch(i -> i.equals(childType.getName()))) {
+                return null;
+            }
+        }
+
+        var returnType = TypeUtils.getExprType(child, table);
+        if (returnType.equals(table.getReturnType(currentMethod))) {
+            return null;
+        }
+
+        // Create error report
+        var message = "Wrong return type.";
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(returnStmt),
+                NodeUtils.getColumn(returnStmt),
                 message,
                 null)
         );

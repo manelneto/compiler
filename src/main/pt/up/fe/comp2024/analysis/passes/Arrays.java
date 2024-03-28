@@ -10,7 +10,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
-public class ArrayAccess extends AnalysisVisitor {
+public class Arrays extends AnalysisVisitor {
 
     String currentMethod;
 

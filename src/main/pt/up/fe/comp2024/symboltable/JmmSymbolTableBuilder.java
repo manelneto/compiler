@@ -74,6 +74,7 @@ public class JmmSymbolTableBuilder {
                 for (JmmNode param : method.getChildren(PARAM)) {
                     var nodeType = param.getChild(0);
                     Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
+                    type.putObject("isEllipsis", nodeType.getObject("isEllipsis", Boolean.class));
                     params.add(new Symbol(type, param.get("paramName")));
                 }
                 map.put(method.get("name"), params);

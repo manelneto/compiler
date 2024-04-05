@@ -35,6 +35,7 @@ public class TypeUtils {
     public void setCurrentMethod(String currentMethod1) {
         this.currentMethod = currentMethod1;
     }
+
     public void setTable(SymbolTable table1) {
         this.table = table1;
     }
@@ -46,7 +47,10 @@ public class TypeUtils {
      * @return
      */
     public Type getExprType(JmmNode expr) {
-        // TODO: Simple implementation that needs to be expanded
+
+        if (expr.hasAttribute("type") && expr.hasAttribute("isArray")) {
+            return new Type(expr.get("type"), Boolean.parseBoolean(expr.get("isArray")));
+        }
 
         var kind = Kind.fromString(expr.getKind());
 
@@ -62,11 +66,13 @@ public class TypeUtils {
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
+        expr.put("type", type.getName());
+        expr.put("isArray", Boolean.toString(type.isArray()));
+
         return type;
     }
 
     private Type getBinExprType(JmmNode binaryExpr) {
-        // TODO: Simple implementation that needs to be expanded
 
         String operator = binaryExpr.get("op");
 
@@ -80,7 +86,7 @@ public class TypeUtils {
 
 
     private Type getVarExprType(JmmNode varRefExpr) {
-        // TODO: Simple implementation that needs to be expanded
+
         var varName = varRefExpr.get("name");
         for (var local : table.getLocalVariables(currentMethod)) {
             if (local.getName().equals(varName)) {
@@ -121,7 +127,7 @@ public class TypeUtils {
      * @return true if sourceType can be assigned to destinationType
      */
     public boolean areTypesAssignable(Type sourceType, Type destinationType) {
-        // TODO: Simple implementation that needs to be expanded
+
         if (table.getImports().stream().anyMatch(i -> i.equals(sourceType.getName())) && table.getImports().stream().anyMatch(i -> i.equals(destinationType.getName()))) {
             return true;
         }

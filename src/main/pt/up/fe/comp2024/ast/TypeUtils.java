@@ -49,7 +49,7 @@ public class TypeUtils {
     public Type getExprType(JmmNode expr) {
 
         if (expr.hasAttribute("type") && expr.hasAttribute("isArray")) {
-            return new Type(expr.get("type"), Boolean.parseBoolean(expr.get("isArray")));
+            return new Type(expr.get("type"), expr.getObject("isArray", Boolean.class));
         }
 
         var kind = Kind.fromString(expr.getKind());
@@ -66,8 +66,8 @@ public class TypeUtils {
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
 
-        expr.put("type", type.getName());
-        expr.put("isArray", Boolean.toString(type.isArray()));
+        expr.putObject("type", type.getName());
+        expr.putObject("isArray", type.isArray());
 
         return type;
     }

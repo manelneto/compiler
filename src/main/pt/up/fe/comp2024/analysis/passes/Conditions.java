@@ -11,6 +11,8 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Conditions extends AnalysisVisitor {
     private String currentMethod;
+    private SymbolTable table;
+    TypeUtils typeUtils = new TypeUtils("", table);
 
     @Override
     public void buildVisitor() {
@@ -21,15 +23,18 @@ public class Conditions extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-        TypeUtils.setCurrentMethod(currentMethod); // ?
+        typeUtils.setCurrentMethod(currentMethod);
         return null;
     }
 
     private Void visitCondition(JmmNode stmt, SymbolTable table) {
-        var conditionNode = stmt.getChild(0);
-        var conditionType = TypeUtils.getExprType(conditionNode, table);
 
-        if (conditionType.getName().equals(TypeUtils.getBooleanTypeName()) && !conditionType.isArray()) {
+        typeUtils.setTable(table);
+
+        var conditionNode = stmt.getChild(0);
+        var conditionType = typeUtils.getExprType(conditionNode);
+
+        if (conditionType.getName().equals(typeUtils.getBooleanTypeName()) && !conditionType.isArray()) {
             return null;
         }
         

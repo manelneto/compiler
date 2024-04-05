@@ -6,41 +6,53 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 
 public class TypeUtils {
 
-    private static final String INT_TYPE_NAME = "int";
-    private static final String STRING_TYPE_NAME = "String";
-    private static final String VOID_TYPE_NAME = "void";
-    private static final String BOOLEAN_TYPE_NAME = "boolean";
-    private static final String THIS_TYPE_NAME = "this";
+    private final String INT_TYPE_NAME = "int";
+    private final String STRING_TYPE_NAME = "String";
+    private final String VOID_TYPE_NAME = "void";
+    private final String BOOLEAN_TYPE_NAME = "boolean";
+    private final String THIS_TYPE_NAME = "this";
+    private String currentMethod;
+    private SymbolTable table;
 
-    private static String currentMethod = "";
+    public TypeUtils(String currentMethod, SymbolTable table) {
+        this.currentMethod = currentMethod;
+        this.table = table;
+    }
 
-    public static String getIntTypeName() {
+    public TypeUtils() {
+        this.currentMethod = "";
+        this.table = null;
+    }
+
+    public String getIntTypeName() {
         return INT_TYPE_NAME;
     }
 
-    public static String getBooleanTypeName() {
+    public String getBooleanTypeName() {
         return BOOLEAN_TYPE_NAME;
     }
 
-    public static void setCurrentMethod(String currentMethod) {
-        TypeUtils.currentMethod = currentMethod;
+    public void setCurrentMethod(String currentMethod1) {
+        this.currentMethod = currentMethod1;
+    }
+    public void setTable(SymbolTable table1) {
+        this.table = table1;
     }
 
     /**
      * Gets the {@link Type} of an arbitrary expression.
      *
      * @param expr
-     * @param table
      * @return
      */
-    public static Type getExprType(JmmNode expr, SymbolTable table) {
+    public Type getExprType(JmmNode expr) {
         // TODO: Simple implementation that needs to be expanded
 
         var kind = Kind.fromString(expr.getKind());
 
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
-            case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT -> getVarExprType(expr, table);
+            case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT -> getVarExprType(expr);
             case INTEGER_LITERAL, ARRAY_ACCESS -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case THIS -> new Type(THIS_TYPE_NAME, false);
@@ -53,7 +65,7 @@ public class TypeUtils {
         return type;
     }
 
-    private static Type getBinExprType(JmmNode binaryExpr) {
+    private Type getBinExprType(JmmNode binaryExpr) {
         // TODO: Simple implementation that needs to be expanded
 
         String operator = binaryExpr.get("op");
@@ -67,7 +79,7 @@ public class TypeUtils {
     }
 
 
-    private static Type getVarExprType(JmmNode varRefExpr, SymbolTable table) {
+    private Type getVarExprType(JmmNode varRefExpr) {
         // TODO: Simple implementation that needs to be expanded
         var varName = varRefExpr.get("name");
         for (var local : table.getLocalVariables(currentMethod)) {
@@ -91,15 +103,15 @@ public class TypeUtils {
         return null;
     }
 
-    public static Type getVoidType() {
+    public Type getVoidType() {
         return new Type(VOID_TYPE_NAME, false);
     }
 
-    public static Type getThisType() {
+    public Type getThisType() {
         return new Type(THIS_TYPE_NAME, false);
     }
 
-    public static Type getStringArrayType() {
+    public Type getStringArrayType() {
         return new Type(STRING_TYPE_NAME, true);
     }
 
@@ -108,7 +120,7 @@ public class TypeUtils {
      * @param destinationType
      * @return true if sourceType can be assigned to destinationType
      */
-    public static boolean areTypesAssignable(Type sourceType, Type destinationType, SymbolTable table) {
+    public boolean areTypesAssignable(Type sourceType, Type destinationType) {
         // TODO: Simple implementation that needs to be expanded
         if (table.getImports().stream().anyMatch(i -> i.equals(sourceType.getName())) && table.getImports().stream().anyMatch(i -> i.equals(destinationType.getName()))) {
             return true;

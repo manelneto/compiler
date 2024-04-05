@@ -24,6 +24,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private final SymbolTable table;
 
+    TypeUtils typeUtils;
+
     private final OllirExprGeneratorVisitor exprVisitor;
 
     public OllirGeneratorVisitor(SymbolTable table) {
@@ -59,7 +61,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // code to compute self
         // statement has type of lhs
-        Type thisType = TypeUtils.getExprType(node.getJmmChild(0), table);
+        Type thisType = typeUtils.getExprType(node.getJmmChild(0));
         String typeString = OptUtils.toOllirType(thisType);
 
 

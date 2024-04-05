@@ -11,6 +11,8 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class IncompatibleAssignment extends AnalysisVisitor {
     private String currentMethod;
+    private SymbolTable table;
+    TypeUtils typeUtils = new TypeUtils("", table);
 
     @Override
     public void buildVisitor() {
@@ -21,17 +23,20 @@ public class IncompatibleAssignment extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-        TypeUtils.setCurrentMethod(currentMethod); // ?
+        typeUtils.setCurrentMethod(currentMethod);
         return null;
     }
 
     private Void visitAssignStmt(JmmNode assignStmt, SymbolTable table) {
+
+        typeUtils.setTable(table);
+
         JmmNode assignValue = assignStmt.getChild(assignStmt.getChildren().size() - 1);
 
-        var varType = TypeUtils.getExprType(assignStmt, table);
-        var assignValueType = TypeUtils.getExprType(assignValue, table);
+        var varType = typeUtils.getExprType(assignStmt);
+        var assignValueType = typeUtils.getExprType(assignValue);
 
-        if (TypeUtils.areTypesAssignable(varType, assignValueType, table)) {
+        if (typeUtils.areTypesAssignable(varType, assignValueType)) {
             return null;
         }
 

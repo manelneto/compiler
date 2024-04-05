@@ -12,7 +12,9 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Arrays extends AnalysisVisitor {
 
-    String currentMethod;
+    private String currentMethod;
+    private SymbolTable table;
+    TypeUtils typeUtils = new TypeUtils("", table);
 
     @Override
     public void buildVisitor() {
@@ -23,18 +25,21 @@ public class Arrays extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-        TypeUtils.setCurrentMethod(currentMethod); // ?
+        typeUtils.setCurrentMethod(currentMethod);
         return null;
     }
 
     private Void visitArrayAccess(JmmNode arrayAccess, SymbolTable table) {
+
+        typeUtils.setTable(table);
+
         var array = arrayAccess.getChild(0);
         var index = arrayAccess.getChild(1);
 
-        var arrayType = TypeUtils.getExprType(array, table);
-        var indexType = TypeUtils.getExprType(index, table);
+        var arrayType = typeUtils.getExprType(array);
+        var indexType = typeUtils.getExprType(index);
 
-        if (arrayType.isArray() && indexType.getName().equals(TypeUtils.getIntTypeName()) && !indexType.isArray()) {
+        if (arrayType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName()) && !indexType.isArray()) {
             return null;
         }
 
@@ -53,8 +58,10 @@ public class Arrays extends AnalysisVisitor {
 
     private Void visitArray(JmmNode array, SymbolTable table) {
 
+        typeUtils.setTable(table);
+
         for (var elem : array.getChildren()) {
-            if (!TypeUtils.getExprType(elem, table).equals(new Type(TypeUtils.getIntTypeName(), false))) {
+            if (!typeUtils.getExprType(elem).equals(new Type(typeUtils.getIntTypeName(), false))) {
                 // Create error report
                 var message = "Invalid array elements.";
                 addReport(Report.newError(

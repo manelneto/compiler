@@ -16,8 +16,13 @@ import static pt.up.fe.comp2024.ast.Kind.*;
 
 public class JmmSymbolTableBuilder {
 
+    TypeUtils typeUtils;
 
-    public static JmmSymbolTable build(JmmNode root) {
+    public JmmSymbolTableBuilder() {
+        this.typeUtils = new TypeUtils();
+    }
+
+    public JmmSymbolTable build(JmmNode root) {
         var children = root.getChildren();
         List<JmmNode> importDecls = children.size() > 1 ? children.subList(0, children.size() - 1) : new ArrayList<>();
 
@@ -39,20 +44,22 @@ public class JmmSymbolTableBuilder {
         return new JmmSymbolTable(imports, className, superclassName, fields, methods, returnTypes, params, locals);
     }
 
-    private static List<String> buildImports(List<JmmNode> importDecls) {
+    private List<String> buildImports(List<JmmNode> importDecls) {
         List<String> imports = new ArrayList<>();
         for (JmmNode i : importDecls) {
+            /*List<String> tempImport = i.getObjectAsList("name", String.class);
+            imports.add(tempImport.stream().reduce((a, e) -> a + "." + e).orElse(""));*/
             imports.add(i.get("name"));
         }
         return imports;
     }
 
-    private static Map<String, Type> buildReturnTypes(JmmNode classDecl) {
+    private Map<String, Type> buildReturnTypes(JmmNode classDecl) {
         Map<String, Type> map = new HashMap<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
             if (method.getObject("isVoid", Boolean.class)) {
-                map.put("main", TypeUtils.getVoidType());
+                map.put("main", typeUtils.getVoidType());
             } else {
                 var nodeType = method.getChild(0);
                 Type type = new Type(nodeType.get("name"), nodeType.getObject("isArray", Boolean.class));
@@ -63,12 +70,12 @@ public class JmmSymbolTableBuilder {
         return map;
     }
 
-    private static Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
+    private Map<String, List<Symbol>> buildParams(JmmNode classDecl) {
         Map<String, List<Symbol>> map = new HashMap<>();
 
         for (JmmNode method : classDecl.getChildren(METHOD_DECL)) {
             if (method.getObject("isVoid", Boolean.class)) {
-                map.put("main", List.of(new Symbol(TypeUtils.getStringArrayType(), method.get("paramName"))));
+                map.put("main", List.of(new Symbol(typeUtils.getStringArrayType(), method.get("paramName"))));
             } else {
                 List<Symbol> params = new ArrayList<>();
                 for (JmmNode param : method.getChildren(PARAM)) {
@@ -84,13 +91,13 @@ public class JmmSymbolTableBuilder {
         return map;
     }
 
-    private static Map<String, List<Symbol>> buildLocals(JmmNode classDecl) {
+    private Map<String, List<Symbol>> buildLocals(JmmNode classDecl) {
         Map<String, List<Symbol>> map = new HashMap<>();
         classDecl.getChildren(METHOD_DECL).forEach(method -> map.put(method.get("name"), getLocalsList(method)));
         return map;
     }
 
-    private static List<Symbol> buildFields(JmmNode classDecl) {
+    private List<Symbol> buildFields(JmmNode classDecl) {
         List<Symbol> fields = new ArrayList<>();
 
         for (JmmNode field : classDecl.getChildren(VAR_DECL)) {
@@ -103,14 +110,14 @@ public class JmmSymbolTableBuilder {
         return fields;
     }
 
-    private static List<String> buildMethods(JmmNode classDecl) {
+    private List<String> buildMethods(JmmNode classDecl) {
         return classDecl.getChildren(METHOD_DECL).stream()
                 .map(method -> method.get("name"))
                 .toList();
     }
 
 
-    private static List<Symbol> getLocalsList(JmmNode methodDecl) {
+    private List<Symbol> getLocalsList(JmmNode methodDecl) {
         List<Symbol> localsList = new ArrayList<>();
 
         for (JmmNode local : methodDecl.getChildren(VAR_DECL)) {

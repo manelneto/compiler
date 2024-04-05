@@ -12,6 +12,8 @@ import pt.up.fe.comp2024.ast.TypeUtils;
 public class Methods extends AnalysisVisitor {
 
     private String currentMethod;
+    private SymbolTable table;
+    TypeUtils typeUtils = new TypeUtils("", table);
 
     @Override
     public void buildVisitor() {
@@ -22,15 +24,17 @@ public class Methods extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-        TypeUtils.setCurrentMethod(currentMethod); // ?
+        typeUtils.setCurrentMethod(currentMethod);
         return null;
     }
 
     private Void visitFunctionCall(JmmNode functionCall, SymbolTable table) {
 
+        typeUtils.setTable(table);
+
         var functionName = functionCall.get("name");
         var child = functionCall.getChild(0);
-        var childType = TypeUtils.getExprType(child, table);
+        var childType = typeUtils.getExprType(child);
 
         if (table.getMethods().stream().noneMatch(method -> method.equals(functionName))) {
             if (childType.getName().equals(table.getClassName()) && !table.getSuper().isEmpty()) {
@@ -51,7 +55,7 @@ public class Methods extends AnalysisVisitor {
             if (lastChild.getKind().equals(Kind.ARRAY.toString()) || (lastChild.hasAttribute("isArray") && lastChild.getObject("isArray", Boolean.class))) {
                 if (args.size() == children.size() - 1) {
                     for (int i = 1; i < children.size() - 1; i++) {
-                        if (!TypeUtils.getExprType(children.get(i), table).equals(args.get(i - 1).getType())) {
+                        if (!typeUtils.getExprType(children.get(i)).equals(args.get(i - 1).getType())) {
                             // Create error report
                             var message = "Wrong arguments types (with array).";
                             addReport(Report.newError(
@@ -71,7 +75,7 @@ public class Methods extends AnalysisVisitor {
                 int j = 0;
                 for (int i = 1; i < children.size(); i++) {
                     var param = children.get(i);
-                    if ((param.hasAttribute("isArray") && param.getObject("isArray", Boolean.class)) || !TypeUtils.getExprType(param, table).getName().equals(args.get(j).getType().getName())) {
+                    if ((param.hasAttribute("isArray") && param.getObject("isArray", Boolean.class)) || !typeUtils.getExprType(param).getName().equals(args.get(j).getType().getName())) {
                         // Create error report
                         var message = "Wrong arguments types (without array).";
                         addReport(Report.newError(
@@ -94,7 +98,7 @@ public class Methods extends AnalysisVisitor {
 
             if (args.size() == children.size() - 1) {
                 for (int i = 1; i < children.size(); i++) {
-                    if (!TypeUtils.getExprType(children.get(i), table).equals(args.get(i - 1).getType())) {
+                    if (!typeUtils.getExprType(children.get(i)).equals(args.get(i - 1).getType())) {
                         // Create error report
                         var message = "Wrong arguments.";
                         addReport(Report.newError(
@@ -127,16 +131,18 @@ public class Methods extends AnalysisVisitor {
 
     private Void visitReturnStmt(JmmNode returnStmt, SymbolTable table) {
 
+        typeUtils.setTable(table);
+
         var child = returnStmt.getChild(0);
         if (child.getKind().equals(Kind.FUNCTION_CALL.toString())) {
-            var childType = TypeUtils.getExprType(child.getChild(0), table);
+            var childType = typeUtils.getExprType(child.getChild(0));
 
             if (table.getImports().stream().anyMatch(i -> i.equals(childType.getName()))) {
                 return null;
             }
         }
 
-        var returnType = TypeUtils.getExprType(child, table);
+        var returnType = typeUtils.getExprType(child);
         if (returnType.equals(table.getReturnType(currentMethod))) {
             return null;
         }

@@ -17,7 +17,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
 
+    private String currentMethod;
     private final SymbolTable table;
+
+    TypeUtils typeUtils;
+
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
         this.table = table;
@@ -34,7 +38,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
-        var intType = new Type(TypeUtils.getIntTypeName(), false);
+        var intType = new Type(typeUtils.getIntTypeName(), false);
         String ollirIntType = OptUtils.toOllirType(intType);
         String code = node.get("value") + ollirIntType;
         return new OllirExprResult(code);
@@ -53,7 +57,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         computation.append(rhs.getComputation());
 
         // code to compute self
-        Type resType = TypeUtils.getExprType(node, table);
+        Type resType = typeUtils.getExprType(node);
         String resOllirType = OptUtils.toOllirType(resType);
         String code = OptUtils.getTemp() + resOllirType;
 
@@ -61,7 +65,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
                 .append(ASSIGN).append(resOllirType).append(SPACE)
                 .append(lhs.getCode()).append(SPACE);
 
-        Type type = TypeUtils.getExprType(node, table);
+        Type type = typeUtils.getExprType(node);
         computation.append(node.get("op")).append(OptUtils.toOllirType(type)).append(SPACE)
                 .append(rhs.getCode()).append(END_STMT);
 
@@ -72,7 +76,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
 
         var id = node.get("name");
-        Type type = TypeUtils.getExprType(node, table);
+        Type type = typeUtils.getExprType(node);
         String ollirType = OptUtils.toOllirType(type);
 
         String code = id + ollirType;

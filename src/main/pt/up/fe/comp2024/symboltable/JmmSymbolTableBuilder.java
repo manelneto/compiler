@@ -47,9 +47,8 @@ public class JmmSymbolTableBuilder {
     private List<String> buildImports(List<JmmNode> importDecls) {
         List<String> imports = new ArrayList<>();
         for (JmmNode i : importDecls) {
-            /*List<String> tempImport = i.getObjectAsList("name", String.class);
-            imports.add(tempImport.stream().reduce((a, e) -> a + "." + e).orElse(""));*/
-            imports.add(i.get("name"));
+            List<String> tempImport = i.getObjectAsList("name", String.class);
+            imports.add(tempImport.stream().reduce((a, e) -> a + "." + e).orElse(""));
         }
         return imports;
     }

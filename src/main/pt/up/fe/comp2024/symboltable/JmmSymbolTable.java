@@ -76,5 +76,4 @@ public class JmmSymbolTable implements SymbolTable {
     public List<Symbol> getLocalVariables(String methodSignature) {
         return Collections.unmodifiableList(locals.get(methodSignature));
     }
-
 }

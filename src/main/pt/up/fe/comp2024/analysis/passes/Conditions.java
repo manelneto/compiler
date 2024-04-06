@@ -37,17 +37,20 @@ public class Conditions extends AnalysisVisitor {
         if (conditionType.getName().equals(typeUtils.getBooleanTypeName()) && !conditionType.isArray()) {
             return null;
         }
-        
-        var message = "Invalid condition.";
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(stmt),
-                NodeUtils.getColumn(stmt),
-                message,
-                null)
-        );
+
+        reportError("Invalid condition", stmt);
 
         return null;
     }
 
+    private void reportError(String message, JmmNode node) {
+
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
+                message,
+                null)
+        );
+    }
 }

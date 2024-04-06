@@ -176,6 +176,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append(childCode);
         }
 
+        if (isVoid) {
+            code.append("ret.V");
+            code.append(END_STMT);
+        }
+
         code.append(R_BRACKET);
         code.append(NL);
 

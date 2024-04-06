@@ -31,15 +31,8 @@ public class ClassNotImported extends AnalysisVisitor {
         if (table.getImports().stream().anyMatch(import_ -> import_.equals(parentClassName))) {
             return null;
         }
-
-        var message = String.format("Class '%s' not imported.", parentClassName);
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(class_),
-                NodeUtils.getColumn(class_),
-                message,
-                null)
-        );
+        
+        reportError(String.format("Class '%s' not imported.", parentClassName), class_);
 
         return null;
     }
@@ -56,14 +49,7 @@ public class ClassNotImported extends AnalysisVisitor {
             return null;
         }
 
-        var message = String.format("Class '%s' not imported.", nodeName);
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(var_),
-                NodeUtils.getColumn(var_),
-                message,
-                null)
-        );
+        reportError(String.format("Class '%s' not imported.", nodeName), var_);
 
         return null;
     }
@@ -84,15 +70,19 @@ public class ClassNotImported extends AnalysisVisitor {
             return null;
         }
 
-        var message = String.format("Class '%s' not imported.", nodeName);
+        reportError(String.format("Class '%s' not imported.", nodeName), method);
+
+        return null;
+    }
+
+    private void reportError(String message, JmmNode node) {
+
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(method),
-                NodeUtils.getColumn(method),
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
                 message,
                 null)
         );
-
-        return null;
     }
 }

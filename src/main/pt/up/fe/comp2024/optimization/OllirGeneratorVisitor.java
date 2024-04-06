@@ -25,7 +25,6 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private final SymbolTable table;
-
     TypeUtils typeUtils;
 
     private final OllirExprGeneratorVisitor exprVisitor;
@@ -55,22 +54,22 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitAssignStmt(JmmNode node, Void unused) {
 
-        var lhs = exprVisitor.visit(node.getJmmChild(0));
-        var rhs = exprVisitor.visit(node.getJmmChild(0)); // TODO
+        var lhs = node.get("name");
+        var lhsType = OptUtils.toOllirType(typeUtils.getExprType(node));
+        var rhs = exprVisitor.visit(node.getJmmChild(0));
 
         StringBuilder code = new StringBuilder();
 
         // code to compute the children
-        code.append(lhs.getComputation());
+        code.append(lhs);
+        code.append(lhsType);
         code.append(rhs.getComputation());
 
         // code to compute self
         // statement has type of lhs
-        Type thisType = typeUtils.getExprType(node.getJmmChild(0));
+        Type thisType = typeUtils.getExprType(node);
         String typeString = OptUtils.toOllirType(thisType);
 
-
-        code.append(lhs.getCode());
         code.append(SPACE);
 
         code.append(ASSIGN);
@@ -123,6 +122,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private String visitMethodDecl(JmmNode node, Void unused) {
+        typeUtils.setCurrentMethod(node.get("name"));
 
         StringBuilder code = new StringBuilder(".method ");
 
@@ -196,9 +196,11 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         boolean isSubclass = NodeUtils.getBooleanAttribute(node, "isSubclass", "false");
 
+        code.append(" extends ");
         if (isSubclass) {
-            code.append(" extends ");
             code.append(table.getSuper());
+        } else {
+            code.append("Object");
         }
 
         code.append(L_BRACKET);

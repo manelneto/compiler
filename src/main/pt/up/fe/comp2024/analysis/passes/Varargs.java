@@ -31,14 +31,7 @@ public class Varargs extends AnalysisVisitor {
             return null;
         }
 
-        var message = "Vararg must be the last parameter of the method";
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(param),
-                NodeUtils.getColumn(param),
-                message,
-                null)
-        );
+        reportError("Vararg must be the last parameter of the method", param);
 
         return null;
     }
@@ -51,14 +44,7 @@ public class Varargs extends AnalysisVisitor {
             return null;
         }
 
-        var message = "Variable declaration cannot be a vararg";
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(varDecl),
-                NodeUtils.getColumn(varDecl),
-                message,
-                null)
-        );
+        reportError("Variable declaration cannot be a vararg", varDecl);
 
         return null;
     }
@@ -75,15 +61,20 @@ public class Varargs extends AnalysisVisitor {
             return null;
         }
 
-        var message = "Method return cannot be a vararg";
+        reportError("Method return cannot be a vararg", methodDecl);
+
+        return null;
+    }
+
+    private void reportError(String message, JmmNode node) {
+
+        var text = message;
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(methodDecl),
-                NodeUtils.getColumn(methodDecl),
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
                 message,
                 null)
         );
-
-        return null;
     }
 }

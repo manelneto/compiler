@@ -56,15 +56,7 @@ public class Methods extends AnalysisVisitor {
                 if (args.size() == children.size() - 1) {
                     for (int i = 1; i < children.size() - 1; i++) {
                         if (!typeUtils.getExprType(children.get(i)).equals(args.get(i - 1).getType())) {
-                            // Create error report
-                            var message = "Wrong arguments types (with array).";
-                            addReport(Report.newError(
-                                    Stage.SEMANTIC,
-                                    NodeUtils.getLine(functionCall),
-                                    NodeUtils.getColumn(functionCall),
-                                    message,
-                                    null)
-                            );
+                            reportError("Wrong arguments types (with array)", functionCall);
 
                             return null;
                         }
@@ -76,15 +68,7 @@ public class Methods extends AnalysisVisitor {
                 for (int i = 1; i < children.size(); i++) {
                     var param = children.get(i);
                     if ((param.hasAttribute("isArray") && param.getObject("isArray", Boolean.class)) || !typeUtils.getExprType(param).getName().equals(args.get(j).getType().getName())) {
-                        // Create error report
-                        var message = "Wrong arguments types (without array).";
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(functionCall),
-                                NodeUtils.getColumn(functionCall),
-                                message,
-                                null)
-                        );
+                        reportError("Wrong arguments types (without array)", functionCall);
 
                         return null;
                     }
@@ -99,15 +83,7 @@ public class Methods extends AnalysisVisitor {
             if (args.size() == children.size() - 1) {
                 for (int i = 1; i < children.size(); i++) {
                     if (!typeUtils.getExprType(children.get(i)).equals(args.get(i - 1).getType())) {
-                        // Create error report
-                        var message = "Wrong arguments.";
-                        addReport(Report.newError(
-                                Stage.SEMANTIC,
-                                NodeUtils.getLine(functionCall),
-                                NodeUtils.getColumn(functionCall),
-                                message,
-                                null)
-                        );
+                        reportError("Wrong arguments", functionCall);
 
                         return null;
                     }
@@ -116,15 +92,7 @@ public class Methods extends AnalysisVisitor {
             }
         }
 
-        // Create error report
-        var message = "Wrong function call.";
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(functionCall),
-                NodeUtils.getColumn(functionCall),
-                message,
-                null)
-        );
+        reportError("Wrong function call", functionCall);
 
         return null;
     }
@@ -147,16 +115,19 @@ public class Methods extends AnalysisVisitor {
             return null;
         }
 
-        // Create error report
-        var message = "Wrong return type.";
+        reportError("Wrong return type", returnStmt);
+
+        return null;
+    }
+
+    private void reportError(String message, JmmNode node) {
+
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(returnStmt),
-                NodeUtils.getColumn(returnStmt),
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
                 message,
                 null)
         );
-
-        return null;
     }
 }

@@ -17,7 +17,6 @@ public class JmmSymbolTable implements SymbolTable {
     private final Map<String, Type> returnTypes;
     private final Map<String, List<Symbol>> params;
     private final Map<String, List<Symbol>> locals;
-    private final Map<String, String> qualifiedImports;
 
     public JmmSymbolTable(List<String> imports,
                           String className,
@@ -26,8 +25,7 @@ public class JmmSymbolTable implements SymbolTable {
                           List<String> methods,
                           Map<String, Type> returnTypes,
                           Map<String, List<Symbol>> params,
-                          Map<String, List<Symbol>> locals,
-                          Map<String, String> qualifiedImports) {
+                          Map<String, List<Symbol>> locals) {
         this.imports = imports;
         this.className = className;
         this.superclassName = superclassName;
@@ -36,7 +34,6 @@ public class JmmSymbolTable implements SymbolTable {
         this.returnTypes = returnTypes;
         this.params = params;
         this.locals = locals;
-        this.qualifiedImports = qualifiedImports;
     }
 
     @Override
@@ -77,9 +74,5 @@ public class JmmSymbolTable implements SymbolTable {
     @Override
     public List<Symbol> getLocalVariables(String methodSignature) {
         return Collections.unmodifiableList(locals.get(methodSignature));
-    }
-
-    public Map<String, String> getQualifiedImports() {
-        return Collections.unmodifiableMap(qualifiedImports);
     }
 }

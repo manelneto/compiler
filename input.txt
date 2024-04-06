@@ -1,4 +1,9 @@
-import IO;
+class Test {
+    public static void main(String[] args) {
+    }
+}
+
+/*import IO;
 
 class Factorial {
     public int computeFactorial(int num){
@@ -16,4 +21,4 @@ class Factorial {
         io.println(new Factorial().computeFactorial(10)); //assuming the existence
                                                           // of the classfile io.class
     }
-}
+}*/

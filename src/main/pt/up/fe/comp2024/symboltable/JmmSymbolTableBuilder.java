@@ -27,7 +27,7 @@ public class JmmSymbolTableBuilder {
         var children = root.getChildren();
         List<JmmNode> importDecls = children.size() > 1 ? children.subList(0, children.size() - 1) : new ArrayList<>();
 
-        Pair<List<String>, Map<String, String>> importsPair = buildImports(importDecls);
+        List<String> imports = buildImports(importDecls);
 
         var classDecl = children.get(children.size() - 1);
 
@@ -42,21 +42,19 @@ public class JmmSymbolTableBuilder {
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
-        return new JmmSymbolTable(importsPair.a, className, superclassName, fields, methods, returnTypes, params, locals, importsPair.b);
+        return new JmmSymbolTable(imports, className, superclassName, fields, methods, returnTypes, params, locals);
     }
 
-    private Pair<List<String>, Map<String, String>> buildImports(List<JmmNode> importDecls) {
+    private List<String> buildImports(List<JmmNode> importDecls) {
         List<String> imports = new ArrayList<>();
-        Map<String, String> qualifiedImports = new HashMap<>();
+
         for (JmmNode i : importDecls) {
             List<String> tempImport = i.getObjectAsList("name", String.class);
-            String fullPath = tempImport.stream().reduce((a, e) -> a + "." + e).orElse("");
             String name = tempImport.get(tempImport.size() - 1);
             imports.add(name);
-            qualifiedImports.put(name, fullPath);
         }
 
-        return new Pair<>(imports, qualifiedImports);
+        return imports;
     }
 
     private Map<String, Type> buildReturnTypes(JmmNode classDecl) {

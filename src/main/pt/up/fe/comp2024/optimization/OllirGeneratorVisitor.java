@@ -7,6 +7,8 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
+import java.util.List;
+
 import static pt.up.fe.comp2024.ast.Kind.*;
 
 /**
@@ -30,6 +32,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     public OllirGeneratorVisitor(SymbolTable table) {
         this.table = table;
+        this.typeUtils = new TypeUtils("", table);
         exprVisitor = new OllirExprGeneratorVisitor(table);
     }
 
@@ -38,7 +41,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     protected void buildVisitor() {
 
         addVisit(PROGRAM, this::visitProgram);
+        addVisit(IMPORT_DECL, this::visitImportDecl);
         addVisit(CLASS_DECL, this::visitClass);
+        addVisit(VAR_DECL, this::visitVarDecl);
         addVisit(METHOD_DECL, this::visitMethodDecl);
         addVisit(PARAM, this::visitParam);
         addVisit(RETURN_STMT, this::visitReturn);
@@ -51,7 +56,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitAssignStmt(JmmNode node, Void unused) {
 
         var lhs = exprVisitor.visit(node.getJmmChild(0));
-        var rhs = exprVisitor.visit(node.getJmmChild(1));
+        var rhs = exprVisitor.visit(node.getJmmChild(0)); // TODO
 
         StringBuilder code = new StringBuilder();
 
@@ -109,7 +114,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitParam(JmmNode node, Void unused) {
 
         var typeCode = OptUtils.toOllirType(node.getJmmChild(0));
-        var id = node.get("name");
+        var id = node.get("paramName");
 
         String code = id + typeCode;
 
@@ -127,22 +132,44 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
             code.append("public ");
         }
 
+        boolean isVoid = NodeUtils.getBooleanAttribute(node, "isVoid", "false");
+
+        if (isVoid) {
+            code.append("static ");
+        }
+
         // name
         var name = node.get("name");
         code.append(name);
 
         // param
-        var paramCode = visit(node.getJmmChild(1));
-        code.append("(" + paramCode + ")");
+        if (isVoid) {
+            code.append("(args.array.String)");
+        } else {
+            code.append("(");
+            for (JmmNode param : node.getChildren(PARAM)) {
+                var paramCode = visit(param);
+                code.append(paramCode);
+                code.append(", ");
+            }
+            if (!node.getChildren(PARAM).isEmpty()) {
+                code.delete(code.length() - 2, code.length());
+            }
+            code.append(")");
+        }
 
         // type
-        var retType = OptUtils.toOllirType(node.getJmmChild(0));
-        code.append(retType);
+        if (isVoid) {
+            code.append(".V");
+        } else {
+            var retType = OptUtils.toOllirType(node.getJmmChild(0));
+            code.append(retType);
+        }
+
         code.append(L_BRACKET);
 
-
         // rest of its children stmts
-        var afterParam = 2;
+        var afterParam = 1 + node.getChildren(PARAM).size();
         for (int i = afterParam; i < node.getNumChildren(); i++) {
             var child = node.getJmmChild(i);
             var childCode = visit(child);
@@ -161,6 +188,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         code.append(table.getClassName());
+
+        boolean isSubclass = NodeUtils.getBooleanAttribute(node, "isSubclass", "false");
+
+        if (isSubclass) {
+            code.append(" extends ");
+            code.append(table.getSuper());
+        }
+
         code.append(L_BRACKET);
 
         code.append(NL);
@@ -200,6 +235,41 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
                 .forEach(code::append);
 
         return code.toString();
+    }
+
+    private String visitImportDecl(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder("import ");
+
+        List<String> tempImport = node.getObjectAsList("name", String.class);
+
+        if (tempImport.size() > 1) {
+            String fullName = tempImport.stream().reduce((a, e) -> a + "." + e).orElse("");
+            code.append(fullName);
+        } else {
+            String name = tempImport.get(0);
+            code.append(name);
+        }
+
+        code.append(END_STMT);
+
+        return code.toString();
+    }
+
+    private String visitVarDecl(JmmNode node, Void unused) {
+        if (node.getParent().getKind().equals(CLASS_DECL.toString())) {
+            StringBuilder code = new StringBuilder(".field public ");
+
+            var name = node.get("name");
+            code.append(name);
+
+            var type = OptUtils.toOllirType(node.getChild(0));
+            code.append(type);
+
+            code.append(END_STMT);
+
+            return code.toString();
+        }
+        return "";
     }
 
     /**

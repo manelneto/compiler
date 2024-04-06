@@ -25,6 +25,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
         this.table = table;
+        this.typeUtils = new TypeUtils("", table);
     }
 
     @Override

@@ -40,16 +40,19 @@ public class IncompatibleAssignment extends AnalysisVisitor {
             return null;
         }
 
-        // Create error report
-        var message = "Invalid assignment.";
+        reportError("Invalid assignment", assignStmt);
+
+        return null;
+    }
+
+    private void reportError(String message, JmmNode node) {
+
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(assignStmt),
-                NodeUtils.getColumn(assignStmt),
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
                 message,
                 null)
         );
-
-        return null;
     }
 }

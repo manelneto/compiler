@@ -32,15 +32,4 @@ public class This extends AnalysisVisitor {
 
         return null;
     }
-
-    private void reportError(String message, JmmNode node) {
-
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(node),
-                NodeUtils.getColumn(node),
-                message,
-                null)
-        );
-    }
 }

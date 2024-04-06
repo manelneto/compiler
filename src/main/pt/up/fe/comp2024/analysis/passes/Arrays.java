@@ -3,11 +3,8 @@ package pt.up.fe.comp2024.analysis.passes;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
-import pt.up.fe.comp.jmm.report.Report;
-import pt.up.fe.comp.jmm.report.Stage;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
-import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Arrays extends AnalysisVisitor {
@@ -59,16 +56,5 @@ public class Arrays extends AnalysisVisitor {
         }
 
         return null;
-    }
-
-    private void reportError(String message, JmmNode node) {
-
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(node),
-                NodeUtils.getColumn(node),
-                message,
-                null)
-        );
     }
 }

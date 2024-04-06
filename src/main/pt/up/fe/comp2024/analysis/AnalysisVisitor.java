@@ -30,6 +30,16 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
         return reports;
     }
 
+    protected void reportError(String message, JmmNode node) {
+
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
+                message,
+                null)
+        );
+    }
     @Override
     public List<Report> analyze(JmmNode root, SymbolTable table) {
         // Visit the node

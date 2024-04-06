@@ -40,20 +40,9 @@ public class InvalidBinaryOperation extends AnalysisVisitor {
         if (!leftType.isArray() && !rightType.isArray() && leftType.equals(rightType)) {
             return null;
         }
-        
+
         reportError("Invalid binary operation", binaryExpr);
 
         return null;
-    }
-
-    private void reportError(String message, JmmNode node) {
-
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(node),
-                NodeUtils.getColumn(node),
-                message,
-                null)
-        );
     }
 }

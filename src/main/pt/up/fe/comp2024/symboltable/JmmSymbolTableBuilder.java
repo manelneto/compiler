@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.symboltable;
 
+import org.antlr.v4.runtime.misc.Pair;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -26,7 +27,7 @@ public class JmmSymbolTableBuilder {
         var children = root.getChildren();
         List<JmmNode> importDecls = children.size() > 1 ? children.subList(0, children.size() - 1) : new ArrayList<>();
 
-        var imports = buildImports(importDecls);
+        Pair<List<String>, Map<String, String>> importsPair = buildImports(importDecls);
 
         var classDecl = children.get(children.size() - 1);
 
@@ -41,16 +42,21 @@ public class JmmSymbolTableBuilder {
         var params = buildParams(classDecl);
         var locals = buildLocals(classDecl);
 
-        return new JmmSymbolTable(imports, className, superclassName, fields, methods, returnTypes, params, locals);
+        return new JmmSymbolTable(importsPair.a, className, superclassName, fields, methods, returnTypes, params, locals, importsPair.b);
     }
 
-    private List<String> buildImports(List<JmmNode> importDecls) {
+    private Pair<List<String>, Map<String, String>> buildImports(List<JmmNode> importDecls) {
         List<String> imports = new ArrayList<>();
+        Map<String, String> qualifiedImports = new HashMap<>();
         for (JmmNode i : importDecls) {
             List<String> tempImport = i.getObjectAsList("name", String.class);
-            imports.add(tempImport.stream().reduce((a, e) -> a + "." + e).orElse(""));
+            String fullPath = tempImport.stream().reduce((a, e) -> a + "." + e).orElse("");
+            String name = tempImport.get(tempImport.size() - 1);
+            imports.add(name);
+            qualifiedImports.put(name, fullPath);
         }
-        return imports;
+
+        return new Pair<>(imports, qualifiedImports);
     }
 
     private Map<String, Type> buildReturnTypes(JmmNode classDecl) {

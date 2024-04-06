@@ -68,7 +68,6 @@ public class Varargs extends AnalysisVisitor {
 
     private void reportError(String message, JmmNode node) {
 
-        var text = message;
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(node),

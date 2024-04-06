@@ -31,7 +31,7 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
         SpecsCheck.checkNotNull(currentMethod, () -> "Expected current method to be set");
-        
+
         var varRefName = varRefExpr.get("name");
 
         if (table.getFields().stream()
@@ -56,7 +56,6 @@ public class UndeclaredVariable extends AnalysisVisitor {
 
     private void reportError(String message, JmmNode node) {
 
-        var text = message;
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(node),

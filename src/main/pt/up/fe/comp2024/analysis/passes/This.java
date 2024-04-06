@@ -28,16 +28,19 @@ public class This extends AnalysisVisitor {
             return null;
         }
 
-        var message = "'this' cannot be used in a static function";
+        reportError("'this' cannot be used in a static function", this_);
+
+        return null;
+    }
+
+    private void reportError(String message, JmmNode node) {
+
         addReport(Report.newError(
                 Stage.SEMANTIC,
-                NodeUtils.getLine(this_),
-                NodeUtils.getColumn(this_),
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
                 message,
                 null)
         );
-
-        return null;
-
     }
 }

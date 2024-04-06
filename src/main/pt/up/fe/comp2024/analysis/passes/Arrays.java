@@ -43,15 +43,7 @@ public class Arrays extends AnalysisVisitor {
             return null;
         }
 
-        // Create error report
-        var message = "Invalid array access.";
-        addReport(Report.newError(
-                Stage.SEMANTIC,
-                NodeUtils.getLine(array),
-                NodeUtils.getColumn(array),
-                message,
-                null)
-        );
+        reportError("Invalid array access", array);
 
         return null;
     }
@@ -62,18 +54,21 @@ public class Arrays extends AnalysisVisitor {
 
         for (var elem : array.getChildren()) {
             if (!typeUtils.getExprType(elem).equals(new Type(typeUtils.getIntTypeName(), false))) {
-                // Create error report
-                var message = "Invalid array elements.";
-                addReport(Report.newError(
-                        Stage.SEMANTIC,
-                        NodeUtils.getLine(array),
-                        NodeUtils.getColumn(array),
-                        message,
-                        null)
-                );
+                reportError("Invalid array elements", array);
             }
         }
 
         return null;
+    }
+
+    private void reportError(String message, JmmNode node) {
+
+        addReport(Report.newError(
+                Stage.SEMANTIC,
+                NodeUtils.getLine(node),
+                NodeUtils.getColumn(node),
+                message,
+                null)
+        );
     }
 }

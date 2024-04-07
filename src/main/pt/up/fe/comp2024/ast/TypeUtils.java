@@ -107,6 +107,12 @@ public class TypeUtils {
             }
         }
 
+        for (var i : table.getImports()) {
+            if (i.equals(varName)) {
+                return new Type(i, false);
+            }
+        }
+
         return null;
     }
 

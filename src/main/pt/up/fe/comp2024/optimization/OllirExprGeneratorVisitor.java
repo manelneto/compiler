@@ -17,7 +17,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
 
-    private String currentMethod;
     private final SymbolTable table;
 
     TypeUtils typeUtils;
@@ -28,15 +27,45 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         this.typeUtils = new TypeUtils("", table);
     }
 
+    public void setCurrentMethod(String currentMethod) {
+        typeUtils.setCurrentMethod(currentMethod);
+    }
+
     @Override
     protected void buildVisitor() {
         addVisit(VAR_REF_EXPR, this::visitVarRef);
         addVisit(BINARY_EXPR, this::visitBinExpr);
         addVisit(INTEGER_LITERAL, this::visitInteger);
-
+        addVisit(FUNCTION_CALL, this::visitFunctionCall);
         setDefaultVisit(this::defaultVisit);
     }
 
+    private OllirExprResult visitFunctionCall(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder("invokestatic(");
+
+        var className = typeUtils.getExprType(node.getChild(0)).getName();
+        code.append(className);
+        code.append(", \"");
+
+        var functionName = node.get("name");
+        code.append(functionName);
+        code.append("\", ");
+
+        for (int i = 1; i < node.getNumChildren(); i++) {
+            code.append(visit(node.getJmmChild(i)).getCode());
+        }
+
+        code.append(")");
+
+        if (node.getParent().getKind().equals(ASSIGN_STMT.toString())) {
+            var retType = typeUtils.getExprType(node.getParent());
+            code.append(OptUtils.toOllirType(retType));
+        } else {
+            code.append(".V");
+        }
+
+        return new OllirExprResult(code.toString());
+    }
 
     private OllirExprResult visitInteger(JmmNode node, Void unused) {
         var intType = new Type(typeUtils.getIntTypeName(), false);
@@ -75,7 +104,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-
         var id = node.get("name");
         Type type = typeUtils.getExprType(node);
         String ollirType = OptUtils.toOllirType(type);

@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -91,24 +92,28 @@ public class TypeUtils {
         var varName = varRefExpr.get("name");
         for (var local : table.getLocalVariables(currentMethod)) {
             if (local.getName().equals(varName)) {
+                varRefExpr.putObject("isInstance", true);
                 return local.getType();
             }
         }
 
         for (var param : table.getParameters(currentMethod)) {
             if (param.getName().equals(varName)) {
+                varRefExpr.putObject("isInstance", true);
                 return param.getType();
             }
         }
 
         for (var field : table.getFields()) {
             if (field.getName().equals(varName)) {
+                varRefExpr.putObject("isInstance", true);
                 return field.getType();
             }
         }
 
         for (var i : table.getImports()) {
             if (i.equals(varName)) {
+                varRefExpr.putObject("isInstance", false);
                 return new Type(i, false);
             }
         }

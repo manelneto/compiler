@@ -1,24 +1,23 @@
-class Test {
+class CMI {
+
     public static void main(String[] args) {
+
+    }
+
+    public int foo() {
+        CMI c;
+        c = new CMI();
+        c.f1().f2();
+
+
+        return 0;
+    }
+
+    public int f1() {
+        return 0;
+    }
+
+    public int f2() {
+        return 0;
     }
 }
-
-/*import IO;
-
-class Factorial {
-    public int computeFactorial(int num){
-        int num_aux ;
-        if (num < 1)
-            num_aux = 1;
-        else
-            num_aux = num * (this.computeFactorial(num-1));
-        return num_aux;
-    }
-
-    public static void main(String[] args) {
-        IO io;
-        io = new IO();
-        io.println(new Factorial().computeFactorial(10)); //assuming the existence
-                                                          // of the classfile io.class
-    }
-}*/

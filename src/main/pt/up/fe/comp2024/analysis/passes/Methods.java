@@ -44,6 +44,10 @@ public class Methods extends AnalysisVisitor {
         }
 
         var args = table.getParameters(functionName);
+        if (args.isEmpty()) {
+            return null;
+        }
+
         var lastParam = args.get(args.size() - 1);
         var children = functionCall.getChildren();
 

@@ -53,7 +53,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitSimpleStmt(JmmNode node, Void unused) {
-        return exprVisitor.visit(node.getChild(0)).getCode() + END_STMT;
+        JmmNode child = node.getChild(0);
+        OllirExprResult result = exprVisitor.visit(child);
+        return result.getCode() + END_STMT;
     }
 
     private String visitAssignStmt(JmmNode node, Void unused) {
@@ -65,9 +67,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         // code to compute the children
+        code.append(rhs.getComputation());
         code.append(lhs);
         code.append(lhsType);
-        code.append(rhs.getComputation());
 
         // code to compute self
         // statement has type of lhs

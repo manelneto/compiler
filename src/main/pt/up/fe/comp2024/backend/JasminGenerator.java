@@ -11,6 +11,7 @@ import pt.up.fe.specs.util.utilities.StringLines;
 import javax.lang.model.element.TypeElement;
 import javax.naming.AuthenticationNotSupportedException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -53,6 +54,7 @@ public class JasminGenerator {
         generators.put(Field.class, this::generateField);
         generators.put(PutFieldInstruction.class, this::generatePutFieldInst);
         generators.put(GetFieldInstruction.class, this::generateGetFieldInst);
+        generators.put(CallInstruction.class, this::generateCallInst);
     }
 
 
@@ -86,11 +88,9 @@ public class JasminGenerator {
         // generate a single constructor method
         String defaultConstructor = ";default constructor\n" +
                 ".method public <init>()V\n" +
-                "aload_0\n" +
-                "invokespecial " +
-                superClassName +
-                ".<init>()V\n" +
-                "return\n" +
+                TAB + "aload 0\n" +
+                TAB + getSuperClassConstructorCall() +
+                TAB + "return\n" +
                 ".end method\n";
 
         for(var field : ollirResult.getOllirClass().getFields()) {
@@ -112,6 +112,24 @@ public class JasminGenerator {
             code.append(generators.apply(method));
         }
 
+        return code.toString();
+    }
+
+    private String getSuperClassConstructorCall() {
+        var superClassName = ollirResult.getOllirClass().getSuperClass();
+        if (superClassName == null)
+            superClassName = "java/lang/Object/";
+        return "invokespecial " + superClassName + "<init>()V\n";
+    }
+
+    private String getConstructorCall(List<String> argsType) {
+        var code = new StringBuilder();
+        code.append("invokespecial ");
+        code.append("<init>(");
+        for (var argType : argsType) {
+            code.append(argType);
+        }
+        code.append(")V");
         return code.toString();
     }
 
@@ -151,10 +169,18 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
-            var instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));
-
-            code.append(instCode);
+            /*var instCode = StringLines.getLines(generators.apply(inst)).stream()
+                    .collect(Collectors.joining(NL + TAB, TAB, NL));*/
+            for (var i = 0; i < StringLines.getLines(generators.apply(inst)).size(); i++) {
+                var result = StringLines.getLines(generators.apply(inst)).get(i);
+                if (result.isEmpty())
+                    continue;
+                code.append(NL + TAB);
+                code.append(result);
+                if (i != StringLines.getLines(generators.apply(inst)).size())
+                    code.append(NL);
+            }
+            //code.append(instCode);
         }
 
         code.append(".end method\n");
@@ -184,8 +210,8 @@ public class JasminGenerator {
         // TODO: Hardcoded for int type, needs to be expanded
 
         var operandCode = switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "istore_";
-            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore_"; //TODO: Class pode não estar certo
+            case INT32, BOOLEAN -> "istore ";
+            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore "; //TODO: Class pode não estar certo
             case THIS, VOID -> null;
         };
         code.append(operandCode);
@@ -204,7 +230,7 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload_" + reg + NL;
+        return "iload " + reg + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -282,7 +308,7 @@ public class JasminGenerator {
 
     private String generatePutFieldInst(PutFieldInstruction putFieldInstruction) {
         var code = new StringBuilder();
-        code.append("aload_");
+        code.append("aload ");
         code.append(putFieldInstruction.getObject().getParamId());
         code.append(NL);
         code.append(generators.apply(putFieldInstruction.getValue()));
@@ -307,8 +333,51 @@ public class JasminGenerator {
         code.append("\n.field ").append(modifier).append(fieldName).append(" ");
         code.append(toJasminType(field.getFieldType().getTypeOfElement())).append(NL);
 
+        return code.toString();
+    }
 
+    private String generateCallInst(CallInstruction callInstruction) {
+        var code = new StringBuilder();
+        var instType = callInstruction.getInvocationType();
+        switch (instType) {
+            case invokevirtual :
+                break;
+            case invokeinterface :
+                break;
+            case invokespecial :
+                break;
+            case invokestatic :
+                break;
+            case NEW :
+                code.append("new ");
+                var op = callInstruction.getOperands().get(0).toString();
+                var className = op.substring(op.lastIndexOf(":") + 2, op.indexOf(".")); // TODO
+                code.append(className);
+                code.append(NL);
+                code.append("dup");
+                code.append(NL);
 
+                var argsType = new ArrayList<String>();
+                for (var i = 2; i < callInstruction.getArguments().size(); i++) {
+                    var operand = currentMethod.getVarTable().get(callInstruction.getOperands().get(0));
+                    var reg = 0;
+                    if (operand != null)
+                        reg = operand.getVirtualReg();
+                    code.append("aload ");
+                    code.append(reg);
+                    code.append(NL);
+                    var arg = callInstruction.getArguments().get(i);
+                    argsType.add(toJasminType(arg.getType().getTypeOfElement()));
+                }
+                code.append(getConstructorCall(argsType));
+                code.append(NL);
+                break;
+
+            case arraylength :
+                break;
+            case ldc :
+                break;
+        }
         return code.toString();
     }
 

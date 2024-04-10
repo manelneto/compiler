@@ -118,14 +118,15 @@ public class JasminGenerator {
     private String getSuperClassConstructorCall() {
         var superClassName = ollirResult.getOllirClass().getSuperClass();
         if (superClassName == null)
-            superClassName = "java/lang/Object/";
-        return "invokespecial " + superClassName + "<init>()V\n";
+            superClassName = "java/lang/Object";
+        return "invokespecial " + superClassName + ".<init>()V\n";
     }
 
-    private String getConstructorCall(List<String> argsType) {
+    private String getConstructorCall(String className, List<String> argsType) {
         var code = new StringBuilder();
         code.append("invokespecial ");
-        code.append("<init>(");
+        code.append(className);
+        code.append(".<init>(");
         for (var argType : argsType) {
             code.append(argType);
         }
@@ -350,8 +351,7 @@ public class JasminGenerator {
                 break;
             case NEW :
                 code.append("new ");
-                var op = callInstruction.getOperands().get(0).toString();
-                var className = op.substring(op.lastIndexOf(":") + 2, op.indexOf(".")); // TODO
+                var className = ollirResult.getOllirClass().getClassName(); // TODO
                 code.append(className);
                 code.append(NL);
                 code.append("dup");
@@ -369,7 +369,7 @@ public class JasminGenerator {
                     var arg = callInstruction.getArguments().get(i);
                     argsType.add(toJasminType(arg.getType().getTypeOfElement()));
                 }
-                code.append(getConstructorCall(argsType));
+                code.append(getConstructorCall(ollirResult.getOllirClass().getClassName(), argsType));
                 code.append(NL);
                 break;
 

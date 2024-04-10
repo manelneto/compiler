@@ -50,7 +50,11 @@ public class JasminGenerator {
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
+        generators.put(Field.class, this::generateField);
+        generators.put(PutFieldInstruction.class, this::generatePutFieldInst);
+        generators.put(GetFieldInstruction.class, this::generateGetFieldInst);
     }
+
 
     public List<Report> getReports() {
         return reports;
@@ -89,6 +93,10 @@ public class JasminGenerator {
                 "return\n" +
                 ".end method\n";
 
+        for(var field : ollirResult.getOllirClass().getFields()) {
+            code.append(generators.apply(field));
+        }
+        code.append(NL);
         code.append(defaultConstructor);
 
         // generate code for all other methods
@@ -176,8 +184,8 @@ public class JasminGenerator {
         // TODO: Hardcoded for int type, needs to be expanded
 
         var operandCode = switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "istore ";
-            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore "; //TODO: Class pode não estar certo
+            case INT32, BOOLEAN -> "istore_";
+            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore_"; //TODO: Class pode não estar certo
             case THIS, VOID -> null;
         };
         code.append(operandCode);
@@ -196,7 +204,7 @@ public class JasminGenerator {
     private String generateOperand(Operand operand) {
         // get register
         var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        return "iload " + reg + NL;
+        return "iload_" + reg + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -255,4 +263,53 @@ public class JasminGenerator {
             case VOID -> "V";
         };
     }
+
+    private String generateGetFieldInst(GetFieldInstruction getFieldInstruction) {
+        var code = new StringBuilder();
+        code.append("aload ");
+        code.append(getFieldInstruction.getObject().getParamId());
+        code.append(NL);
+        code.append("getfield ");
+        code.append(currentMethod.getOllirClass().getClassName());
+        code.append("/");
+        code.append(getFieldInstruction.getField().getName());
+        code.append(" ");
+        code.append(toJasminType(getFieldInstruction.getField().getType().getTypeOfElement()));
+        code.append(NL);
+
+        return code.toString();
+    }
+
+    private String generatePutFieldInst(PutFieldInstruction putFieldInstruction) {
+        var code = new StringBuilder();
+        code.append("aload_");
+        code.append(putFieldInstruction.getObject().getParamId());
+        code.append(NL);
+        code.append(generators.apply(putFieldInstruction.getValue()));
+        code.append("putfield ");
+        code.append(currentMethod.getOllirClass().getClassName());
+        code.append("/");
+        code.append(putFieldInstruction.getField().getName());
+        code.append(" ");
+        code.append(toJasminType(putFieldInstruction.getField().getType().getTypeOfElement()));
+        code.append(NL);
+
+        return code.toString();
+    }
+
+    private String generateField(Field field) {
+        var code = new StringBuilder();
+        var modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT ?
+                field.getFieldAccessModifier().name().toLowerCase() + " " :
+                "private ";
+
+        var fieldName = field.getFieldName();
+        code.append("\n.field ").append(modifier).append(fieldName).append(" ");
+        code.append(toJasminType(field.getFieldType().getTypeOfElement())).append(NL);
+
+
+
+        return code.toString();
+    }
+
 }

@@ -1,21 +1,17 @@
 class Test {
 
+	int intField;
 
 	public static void main(String[] args) {
-
 	}
 
 
 	public int foo() {
-	    int a;
-	    int b;
-	    int c;
+        int a;
 
-	    a = 1;
-	    b = 2;
+		intField = 10;
+		a = intField;
 
-	    c = a + b;
-
-	    return c;
+		return a;
 	}
 }

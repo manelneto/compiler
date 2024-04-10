@@ -1,27 +1,21 @@
-import io;
+class Test {
 
-class CMI {
 
-    public static void main(String[] args) {
-    }
+	public static void main(String[] args) {
 
-    public int foo() {
-        CMI c;
-        int a;
-        int b;
-        a = 1;
-        b = 2;
-        c.f1().f2(a, b);
-        return 0;
-    }
+	}
 
-    public int f1() {
-        CMI c;
-        c = new CMI();
-        return 0;
-    }
 
-    public int f2(int a, int b) {
-        return 0;
-    }
+	public int foo() {
+	    int a;
+	    int b;
+	    int c;
+
+	    a = 1;
+	    b = 2;
+
+	    c = a + b;
+
+	    return c;
+	}
 }

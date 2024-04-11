@@ -57,10 +57,9 @@ public class TypeUtils {
 
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
-            case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT -> getVarExprType(expr);
+            case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT, THIS -> getVarExprType(expr);
             case INTEGER_LITERAL, ARRAY_ACCESS -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
-            case THIS -> new Type(THIS_TYPE_NAME, false);
             case NEW_OBJECT -> new Type(expr.get("name"), false);
             case FUNCTION_CALL -> table.getReturnType(expr.get("name"));
             case ARRAY -> new Type(INT_TYPE_NAME, true);
@@ -88,6 +87,10 @@ public class TypeUtils {
 
 
     private Type getVarExprType(JmmNode varRefExpr) {
+        if (varRefExpr.getKind().equals(Kind.THIS.toString())) {
+            varRefExpr.putObject("isInstance", true);
+            return new Type(table.getClassName(), false);
+        }
 
         var varName = varRefExpr.get("name");
         for (var local : table.getLocalVariables(currentMethod)) {

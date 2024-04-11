@@ -39,14 +39,13 @@ public class OptUtils {
 
     private static String toOllirType(String typeName) {
 
-        String type = "." + switch (typeName) {
+            String type = "." + switch (typeName) {
             case "String[]" -> "array.String";
             case "boolean" -> "bool";
             case "int" -> "i32";
             case "void" -> "V";
             default -> typeName;
         };
-
         return type;
     }
 

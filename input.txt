@@ -1,6 +1,11 @@
 import ioPlus;
+
 class HelloWorld {
 	public static void main(String[] args) {
 		ioPlus.printHelloWorld();
+	}
+	public int add(int a) {
+	    int a;
+	    return 0;
 	}
 }

@@ -55,7 +55,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     private String visitSimpleStmt(JmmNode node, Void unused) {
         JmmNode child = node.getChild(0);
         OllirExprResult result = exprVisitor.visit(child);
-        return result.getCode() + END_STMT;
+        return result.getComputation() + result.getCode() + END_STMT;
     }
 
     private String visitAssignStmt(JmmNode node, Void unused) {
@@ -174,7 +174,9 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(L_BRACKET);
 
         // rest of its children stmts
-        var afterParam = 1 + node.getChildren(PARAM).size();
+        var afterParam = 1 + node.getChildren(PARAM).size(); // TODO: o que é que se passa aqui
+        if (node.getChildren(PARAM).isEmpty())
+            afterParam = 0;
         for (int i = afterParam; i < node.getNumChildren(); i++) {
             var child = node.getJmmChild(i);
             var childCode = visit(child);

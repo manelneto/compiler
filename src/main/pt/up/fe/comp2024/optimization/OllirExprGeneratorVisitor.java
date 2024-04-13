@@ -77,76 +77,77 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
         var child = node.getChild(0);
         OllirExprResult result = visit(child);
-        String type = OptUtils.toOllirType(typeUtils.getExprType(child));
+        String type = OptUtils.toOllirType(typeUtils.getExprType(node));
         String end = "";
-
-        if (node.getParent().getKind().equals(FUNCTION_CALL.toString())) {
-            computation.append(OptUtils.getTemp());
-            computation.append(type);
-        }
+        var currentTemp = OptUtils.getTemp();
+        //if (node.getParent().getKind().equals(FUNCTION_CALL.toString())) {
+            code.append(currentTemp);
+            code.append(type);
+        //}
 
         if (!child.getKind().equals(FUNCTION_CALL.toString())) {
-            if (node.getParent().getKind().equals(FUNCTION_CALL.toString())) {
-                code.append(computation);
-                code.append(" " + ASSIGN);
-                code.append(type + " ");
-                end = END_STMT;
+            if (node.getParent().getKind().equals(SIMPLE_STMT.toString())) {
+                code.delete(0, code.length());
             }
+            else /*(!node.getParent().getKind().equals(SIMPLE_STMT.toString()))*/ {
+                computation.append(code);
+                computation.append(" " + ASSIGN);
+                computation.append(type + " ");
+                end = END_STMT;
+                }
 
             if (child.getObject("isInstance", Boolean.class)) {
-                code.append("invokevirtual(");
-                code.append(child.get("name"));
-                code.append(OptUtils.toOllirType(typeUtils.getExprType(child)));
+                computation.append("invokevirtual(");
+                computation.append(child.get("name"));
+                computation.append(OptUtils.toOllirType(typeUtils.getExprType(child)));
             } else {
-                code.append("invokestatic(");
-                code.append(child.get("name"));
+                computation.append("invokestatic(");
+                computation.append(child.get("name"));
             }
 
-            code.append(", \"");
-            code.append(node.get("name"));
-            code.append("\"");
+            computation.append(", \"");
+            computation.append(node.get("name"));
+            computation.append("\"");
 
             for (int i = 1; i < node.getNumChildren(); i++) {
-                code.append(", ");
-                code.append(visit(node.getJmmChild(i)).getCode());
+                computation.append(", ");
+                computation.append(visit(node.getJmmChild(i)).getCode());
             }
 
-            code.append(")");
-            code.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
-            code.append(end);
+            computation.append(")");
+            computation.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
+            computation.append(end);
 
             return new OllirExprResult(code.toString(), computation.toString());
         }
 
-        var currentTemp = OptUtils.getTemp();
-
-        code.append(result.getCode());
+        computation.append(result.getCode());
 
         if (node.getParent().getKind().equals(FUNCTION_CALL.toString())) {
-            code.append(computation);
-            code.append(" " + ASSIGN);
-            code.append(type);
+            computation.append(code);
+            computation.append(" " + ASSIGN);
+            computation.append(type);
             end = END_STMT;
         }
 
-        code.append("invokevirtual(");
-        code.append(result.getComputation());
-        code.append(", \"");
-        code.append(node.get("name"));
-        code.append("\"");
+        computation.append("invokevirtual(");
+        computation.append(result.getComputation());
+        computation.append(", \"");
+        computation.append(node.get("name"));
+        computation.append("\"");
 
         for (int i = 1; i < node.getNumChildren(); i++) {
-            code.append(", ");
-            code.append(visit(node.getJmmChild(i)).getCode());
+            computation.append(", ");
+            computation.append(visit(node.getJmmChild(i)).getCode());
         }
 
-        code.append(")");
+        computation.append(")");
 
-        code.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
-        code.append(end);
+        computation.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
+        computation.append(end);
 
-        computation.append(currentTemp);
-        computation.append(type);
+        code.append(currentTemp);
+        code.append(type);
 
         return new OllirExprResult(code.toString(), computation.toString());
     }

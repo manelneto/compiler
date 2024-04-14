@@ -11,7 +11,6 @@ public class TypeUtils {
     private final String VOID_TYPE_NAME = "void";
     private final String BOOLEAN_TYPE_NAME = "boolean";
     private final String THIS_TYPE_NAME = "this";
-    private final String IMPORTED_TYPE_NAME = "*";
     private String currentMethod;
     private SymbolTable table;
 
@@ -68,10 +67,6 @@ public class TypeUtils {
         };
 
         assert type != null;
-        
-        if (type.equals(getImportedType())) {
-            type = getVoidType();
-        }
 
         expr.putObject("type", type.getName());
         expr.putObject("isArray", type.isArray());
@@ -142,16 +137,12 @@ public class TypeUtils {
         return new Type(STRING_TYPE_NAME, true);
     }
 
-    public Type getImportedType() {
-        return new Type(IMPORTED_TYPE_NAME, false);
-    }
-
     public boolean isIndexable(Type indexType) {
-        return indexType.equals(getImportedType()) || indexType.equals(new Type(INT_TYPE_NAME, false));
+        return indexType.equals(getVoidType()) || indexType.equals(new Type(INT_TYPE_NAME, false));
     }
 
     public boolean areTypesAssignable(Type lhsType, Type rhsType) {
-        if (rhsType.getName().equals(IMPORTED_TYPE_NAME)) {
+        if (rhsType.getName().equals(VOID_TYPE_NAME)) {
             return true;
         }
 

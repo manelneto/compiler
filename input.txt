@@ -2,10 +2,11 @@ import io;
 
 class Test {
 	public int g() {
-	    int a;
-            boolean b;
-            a = io.f();
-            b = io.f();
-            return a;
+	    int[] a;
+	    int b;
+
+	    a = new int[2];
+
+	    return a[io.ola()];
 	}
 }

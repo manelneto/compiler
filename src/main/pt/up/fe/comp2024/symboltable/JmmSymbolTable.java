@@ -67,7 +67,7 @@ public class JmmSymbolTable implements SymbolTable {
         Type returnType = returnTypes.get(methodSignature);
         if (returnType != null)
             return returnType;
-        return new Type("*", false);
+        return new Type("void", false);
     }
 
     @Override

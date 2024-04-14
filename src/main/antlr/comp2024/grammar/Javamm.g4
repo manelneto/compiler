@@ -105,7 +105,7 @@ expr
     : LPAREN expr RPAREN #ParenExpr
     | expr LSQUARE expr RSQUARE #ArrayAccess
     | expr DOT name=ID LPAREN (expr (COMMA expr)*)? RPAREN #FunctionCall
-    | expr DOT ID #Length
+    | expr DOT name=ID #Length
     | NOT expr #UnaryExpr
     | NEW name=ID LPAREN RPAREN #NewObject
     | NEW INT LSQUARE expr RSQUARE #NewArray

@@ -15,6 +15,7 @@ public class Arrays extends AnalysisVisitor {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ARRAY_ACCESS, this::visitArrayAccess);
         addVisit(Kind.ARRAY, this::visitArray);
+        addVisit(Kind.LENGTH, this::visitLength);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -45,6 +46,19 @@ public class Arrays extends AnalysisVisitor {
                 reportError("Invalid array elements", array);
             }
         }
+        return null;
+    }
+
+    private Void visitLength(JmmNode length, SymbolTable table) {
+        JmmNode expr = length.getChild(0);
+        String id = length.get("name");
+
+        if (typeUtils.getExprType(expr).isArray() && id.equals(Kind.LENGTH.toString().toLowerCase())) {
+            return null;
+        }
+
+        reportError("Invalid field access", length);
+
         return null;
     }
 }

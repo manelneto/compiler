@@ -31,7 +31,6 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
     }
 
     protected void reportError(String message, JmmNode node) {
-
         addReport(Report.newError(
                 Stage.SEMANTIC,
                 NodeUtils.getLine(node),
@@ -40,6 +39,23 @@ public abstract class AnalysisVisitor extends PreorderJmmVisitor<SymbolTable, Vo
                 null)
         );
     }
+
+    protected boolean isValidAccess(String name, SymbolTable table, String currentMethod) {
+        if (!currentMethod.equals("main")) {
+            return true;
+        }
+
+        if (table.getLocalVariables(currentMethod).stream().anyMatch(var -> var.getName().equals(name))) {
+            return true;
+        }
+
+        if (table.getParameters(currentMethod).stream().anyMatch(param -> param.getName().equals(name))) {
+            return true;
+        }
+
+        return table.getFields().stream().noneMatch(field -> field.getName().equals(name));
+    }
+
     @Override
     public List<Report> analyze(JmmNode root, SymbolTable table) {
         // Visit the node

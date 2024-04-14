@@ -1,17 +1,7 @@
-import io;
-
 class Test {
     int a;
-
+    
     public static void main(String[] args) {
-        int a;
-        int b;
         a = 1;
-        b = a + 5;
-    }
-
-    public int f() {
-        a = 5;
-        return a;
     }
 }

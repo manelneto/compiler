@@ -8,6 +8,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Arrays extends AnalysisVisitor {
+    private String currentMethod;
     private TypeUtils typeUtils;
 
     @Override
@@ -16,10 +17,12 @@ public class Arrays extends AnalysisVisitor {
         addVisit(Kind.ARRAY_ACCESS, this::visitArrayAccess);
         addVisit(Kind.ARRAY, this::visitArray);
         addVisit(Kind.LENGTH, this::visitLength);
+        addVisit(Kind.ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        typeUtils = new TypeUtils(method.get("name"), table);
+        currentMethod = method.get("name");
+        typeUtils = new TypeUtils(currentMethod, table);
         return null;
     }
 
@@ -58,6 +61,18 @@ public class Arrays extends AnalysisVisitor {
         }
 
         reportError("Invalid field access", length);
+
+        return null;
+    }
+
+    private Void visitArrayAssignStmt(JmmNode arrayAssignStmt, SymbolTable table) {
+        String name = arrayAssignStmt.get("name");
+
+        if (isValidAccess(name, table, currentMethod)) {
+            return null;
+        }
+
+        reportError("Cannot assign class field inside static function", arrayAssignStmt);
 
         return null;
     }

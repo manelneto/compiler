@@ -8,6 +8,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class IncompatibleAssignment extends AnalysisVisitor {
+    private String currentMethod;
     private TypeUtils typeUtils;
 
     @Override
@@ -18,11 +19,19 @@ public class IncompatibleAssignment extends AnalysisVisitor {
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        typeUtils = new TypeUtils(method.get("name"), table);
+        currentMethod = method.get("name");
+        typeUtils = new TypeUtils(currentMethod, table);
         return null;
     }
 
     private Void visitAssignStmt(JmmNode assignStmt, SymbolTable table) {
+        String name = assignStmt.get("name");
+
+        if (!isValidAccess(name, table, currentMethod)) {
+            reportError("Cannot assign class field inside static function", assignStmt);
+            return null;
+        }
+
         JmmNode rhs = assignStmt.getChild(assignStmt.getChildren().size() - 1);
 
         Type lhsType = typeUtils.getExprType(assignStmt);

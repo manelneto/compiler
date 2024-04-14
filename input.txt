@@ -1,11 +1,9 @@
-import ioPlus;
-
-class HelloWorld {
-	public static void main(String[] args) {
-		ioPlus.printHelloWorld();
-	}
-	public int add(int a) {
-	    int a;
-	    return 0;
+class Test {
+	public int Simple() {
+        int[] a;
+        int b;
+        a = new int[5];
+        b = a[true];
+        return 0;
 	}
 }

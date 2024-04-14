@@ -40,6 +40,7 @@ public class Arrays extends AnalysisVisitor {
             return null;
         }
 
+
         reportError("Invalid array access", array);
 
         return null;

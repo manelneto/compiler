@@ -121,6 +121,14 @@ public class Methods extends AnalysisVisitor {
 
         String name = varRefExpr.get("name");
 
+        if (table.getLocalVariables(currentMethod).stream().anyMatch(var -> var.getName().equals(name))) {
+            return null;
+        }
+
+        if (table.getParameters(currentMethod).stream().anyMatch(param -> param.getName().equals(name))) {
+            return null;
+        }
+
         if (table.getFields().stream().noneMatch(field -> field.getName().equals(name))) {
             return null;
         }

@@ -3,10 +3,7 @@ import io;
 class Test {
 	public int g() {
 	    int[] a;
-	    int b;
-
-	    a = new int[2];
-
-	    return a[io.ola()];
+	    a = [1, 2, 3];
+        return a.length;
 	}
 }

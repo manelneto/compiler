@@ -57,7 +57,7 @@ public class TypeUtils {
         Type type = switch (kind) {
             case BINARY_EXPR -> getBinExprType(expr);
             case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT, THIS -> getVarExprType(expr);
-            case INTEGER_LITERAL, ARRAY_ACCESS -> new Type(INT_TYPE_NAME, false);
+            case INTEGER_LITERAL, ARRAY_ACCESS, LENGTH -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case NEW_OBJECT -> new Type(expr.get("name"), false);
             case FUNCTION_CALL -> table.getReturnType(expr.get("name"));

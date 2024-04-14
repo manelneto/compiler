@@ -1,9 +1,11 @@
+import io;
+
 class Test {
-	public int Simple() {
-        int[] a;
-        int b;
-        a = new int[5];
-        b = a[true];
-        return 0;
+	public int g() {
+	    int a;
+            boolean b;
+            a = io.f();
+            b = io.f();
+            return a;
 	}
 }

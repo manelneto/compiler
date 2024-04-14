@@ -7,7 +7,6 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.specs.util.SpecsCheck;
 
 public class UndeclaredVariable extends AnalysisVisitor {
-
     private String currentMethod;
 
     @Override

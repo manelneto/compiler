@@ -6,7 +6,6 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 
 public class This extends AnalysisVisitor {
-
     private JmmNode currentMethod;
 
     @Override

@@ -6,7 +6,6 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 
 public class Varargs extends AnalysisVisitor {
-
     @Override
     public void buildVisitor() {
         addVisit(Kind.PARAM, this::visitParam);

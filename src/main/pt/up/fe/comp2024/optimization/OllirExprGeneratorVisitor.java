@@ -16,14 +16,10 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
-
-    private final SymbolTable table;
-
-    TypeUtils typeUtils;
+    private TypeUtils typeUtils;
 
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
-        this.table = table;
         this.typeUtils = new TypeUtils("", table);
     }
 
@@ -80,21 +76,18 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String type = OptUtils.toOllirType(typeUtils.getExprType(node));
         String end = "";
         var currentTemp = OptUtils.getTemp();
-        //if (node.getParent().getKind().equals(FUNCTION_CALL.toString())) {
-            code.append(currentTemp);
-            code.append(type);
-        //}
+        code.append(currentTemp);
+        code.append(type);
 
         if (!child.getKind().equals(FUNCTION_CALL.toString())) {
             if (node.getParent().getKind().equals(SIMPLE_STMT.toString())) {
                 code.delete(0, code.length());
-            }
-            else /*(!node.getParent().getKind().equals(SIMPLE_STMT.toString()))*/ {
+            } else {
                 computation.append(code);
                 computation.append(" " + ASSIGN);
                 computation.append(type + " ");
                 end = END_STMT;
-                }
+            }
 
             if (child.getObject("isInstance", Boolean.class)) {
                 computation.append("invokevirtual(");
@@ -158,7 +151,6 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         String code = node.get("value") + ollirIntType;
         return new OllirExprResult(code);
     }
-
 
     private OllirExprResult visitBinExpr(JmmNode node, Void unused) {
 

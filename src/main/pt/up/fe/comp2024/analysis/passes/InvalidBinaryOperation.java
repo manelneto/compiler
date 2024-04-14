@@ -7,10 +7,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class InvalidBinaryOperation extends AnalysisVisitor {
-
-    private String currentMethod;
-    private SymbolTable table;
-    TypeUtils typeUtils = new TypeUtils("", table);
+    private TypeUtils typeUtils;
 
     @Override
     public void buildVisitor() {
@@ -19,15 +16,11 @@ public class InvalidBinaryOperation extends AnalysisVisitor {
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        currentMethod = method.get("name");
-        typeUtils.setCurrentMethod(currentMethod);
+        typeUtils = new TypeUtils(method.get("name"), table);
         return null;
     }
 
     private Void visitBinaryExpr(JmmNode binaryExpr, SymbolTable table) {
-
-        typeUtils.setTable(table);
-
         var leftChild = binaryExpr.getChild(0);
         var rightChild = binaryExpr.getChild(1);
 

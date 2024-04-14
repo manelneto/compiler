@@ -6,7 +6,6 @@ import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
 
 public class ClassNotImported extends AnalysisVisitor {
-
     private String currentClass;
 
     @Override

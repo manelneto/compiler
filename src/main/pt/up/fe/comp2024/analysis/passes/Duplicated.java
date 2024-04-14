@@ -13,10 +13,7 @@ import java.util.HashSet;
 import java.util.List;
 
 public class Duplicated extends AnalysisVisitor {
-
     private String currentMethod;
-    private SymbolTable table;
-    TypeUtils typeUtils = new TypeUtils("", table);
 
     @Override
     public void buildVisitor() {
@@ -28,7 +25,6 @@ public class Duplicated extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-        typeUtils.setCurrentMethod(currentMethod);
         List<String> duplicates = getDuplicatedParams(table);
         if (!duplicates.isEmpty()) {
             reportError(String.format("Duplicated params on method %s: ", currentMethod) + String.join(",", duplicates), method);
@@ -145,8 +141,4 @@ public class Duplicated extends AnalysisVisitor {
         }
         return new ArrayList<>(duplicates);
     }
-
-
-
-
 }

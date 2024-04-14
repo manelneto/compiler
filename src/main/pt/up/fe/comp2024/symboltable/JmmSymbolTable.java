@@ -3,7 +3,6 @@ package pt.up.fe.comp2024.symboltable;
 import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
-import pt.up.fe.comp2024.ast.Kind;
 
 import java.util.Collections;
 import java.util.List;
@@ -65,10 +64,10 @@ public class JmmSymbolTable implements SymbolTable {
 
     @Override
     public Type getReturnType(String methodSignature) {
-        Type retType = returnTypes.get(methodSignature);
-        if (retType != null)
-            return retType;
-        return new Type("void", false);
+        Type returnType = returnTypes.get(methodSignature);
+        if (returnType != null)
+            return returnType;
+        return new Type("*", false);
     }
 
     @Override

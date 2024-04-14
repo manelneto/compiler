@@ -8,10 +8,7 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Arrays extends AnalysisVisitor {
-
-    private String currentMethod;
-    private SymbolTable table;
-    TypeUtils typeUtils = new TypeUtils("", table);
+    private TypeUtils typeUtils;
 
     @Override
     public void buildVisitor() {
@@ -21,25 +18,20 @@ public class Arrays extends AnalysisVisitor {
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
-        currentMethod = method.get("name");
-        typeUtils.setCurrentMethod(currentMethod);
+        typeUtils = new TypeUtils(method.get("name"), table);
         return null;
     }
 
     private Void visitArrayAccess(JmmNode arrayAccess, SymbolTable table) {
+        JmmNode array = arrayAccess.getChild(0);
+        JmmNode index = arrayAccess.getChild(1);
 
-        typeUtils.setTable(table);
+        Type arrayType = typeUtils.getExprType(array);
+        Type indexType = typeUtils.getExprType(index);
 
-        var array = arrayAccess.getChild(0);
-        var index = arrayAccess.getChild(1);
-
-        var arrayType = typeUtils.getExprType(array);
-        var indexType = typeUtils.getExprType(index);
-
-        if (arrayType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName()) && !indexType.isArray()) {
+        if (arrayType.isArray() && typeUtils.isIndexable(indexType)) {
             return null;
         }
-
 
         reportError("Invalid array access", array);
 
@@ -47,15 +39,12 @@ public class Arrays extends AnalysisVisitor {
     }
 
     private Void visitArray(JmmNode array, SymbolTable table) {
-
-        typeUtils.setTable(table);
-
-        for (var elem : array.getChildren()) {
-            if (!typeUtils.getExprType(elem).equals(new Type(typeUtils.getIntTypeName(), false))) {
+        for (JmmNode elem : array.getChildren()) {
+            Type elemType = typeUtils.getExprType(elem);
+            if (!elemType.getName().equals(typeUtils.getIntTypeName()) || elemType.isArray()) {
                 reportError("Invalid array elements", array);
             }
         }
-
         return null;
     }
 }

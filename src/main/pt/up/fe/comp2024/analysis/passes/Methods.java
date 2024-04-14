@@ -7,10 +7,8 @@ import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 public class Methods extends AnalysisVisitor {
-
     private String currentMethod;
-    private SymbolTable table;
-    TypeUtils typeUtils = new TypeUtils("", table);
+    private TypeUtils typeUtils;
 
     @Override
     public void buildVisitor() {
@@ -21,7 +19,7 @@ public class Methods extends AnalysisVisitor {
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
         currentMethod = method.get("name");
-        typeUtils.setCurrentMethod(currentMethod);
+        typeUtils = new TypeUtils(currentMethod, table);
         return null;
     }
 

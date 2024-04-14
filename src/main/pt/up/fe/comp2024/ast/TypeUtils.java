@@ -1,6 +1,5 @@
 package pt.up.fe.comp2024.ast;
 
-import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
@@ -12,6 +11,7 @@ public class TypeUtils {
     private final String VOID_TYPE_NAME = "void";
     private final String BOOLEAN_TYPE_NAME = "boolean";
     private final String THIS_TYPE_NAME = "this";
+    private final String IMPORTED_TYPE_NAME = "*";
     private String currentMethod;
     private SymbolTable table;
 
@@ -62,10 +62,16 @@ public class TypeUtils {
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case NEW_OBJECT -> new Type(expr.get("name"), false);
             case FUNCTION_CALL -> table.getReturnType(expr.get("name"));
-            case ARRAY, NEW_ARRAY-> new Type(INT_TYPE_NAME, true);
+            case ARRAY, NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
             case PAREN_EXPR -> getExprType(expr.getChild(0));
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
         };
+
+        assert type != null;
+        
+        if (type.equals(getImportedType())) {
+            type = getVoidType();
+        }
 
         expr.putObject("type", type.getName());
         expr.putObject("isArray", type.isArray());
@@ -136,25 +142,31 @@ public class TypeUtils {
         return new Type(STRING_TYPE_NAME, true);
     }
 
-    /**
-     * @param sourceType
-     * @param destinationType
-     * @return true if sourceType can be assigned to destinationType
-     */
-    public boolean areTypesAssignable(Type sourceType, Type destinationType) {
+    public Type getImportedType() {
+        return new Type(IMPORTED_TYPE_NAME, false);
+    }
 
-        if (table.getImports().stream().anyMatch(i -> i.equals(sourceType.getName())) && table.getImports().stream().anyMatch(i -> i.equals(destinationType.getName()))) {
+    public boolean isIndexable(Type indexType) {
+        return indexType.equals(getImportedType()) || indexType.equals(new Type(INT_TYPE_NAME, false));
+    }
+
+    public boolean areTypesAssignable(Type lhsType, Type rhsType) {
+        if (rhsType.getName().equals(IMPORTED_TYPE_NAME)) {
             return true;
         }
 
-        if (sourceType.getName().equals(destinationType.getName()) && sourceType.isArray() == destinationType.isArray()) {
+        if (table.getImports().stream().anyMatch(i -> i.equals(lhsType.getName())) && table.getImports().stream().anyMatch(i -> i.equals(rhsType.getName()))) {
             return true;
         }
 
-        if (table.getSuper().equals(sourceType.getName()) && table.getClassName().equals(destinationType.getName())) {
+        if (lhsType.getName().equals(rhsType.getName()) && lhsType.isArray() == rhsType.isArray()) {
             return true;
         }
 
-        return destinationType.getName().equals(THIS_TYPE_NAME) && (table.getClassName().equals(sourceType.getName()) || table.getSuper().equals(sourceType.getName()));
+        if (table.getSuper().equals(lhsType.getName()) && table.getClassName().equals(rhsType.getName())) {
+            return true;
+        }
+
+        return rhsType.getName().equals(THIS_TYPE_NAME) && (table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName()));
     }
 }

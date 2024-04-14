@@ -60,7 +60,7 @@ public class TypeUtils {
             case INTEGER_LITERAL, ARRAY_ACCESS, LENGTH -> new Type(INT_TYPE_NAME, false);
             case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
             case NEW_OBJECT -> new Type(expr.get("name"), false);
-            case FUNCTION_CALL -> table.getReturnType(expr.get("name"));
+            case FUNCTION_CALL -> getFunctionCallType(expr);
             case ARRAY, NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
             case PAREN_EXPR -> getExprType(expr.getChild(0));
             default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
@@ -86,6 +86,15 @@ public class TypeUtils {
         };
     }
 
+    private Type getFunctionCallType(JmmNode functionCall) {
+        JmmNode expr = functionCall.getChild(0);
+        if (table.getImports().stream().anyMatch(i -> i.equals(expr.get("name"))) || table.getImports().stream().anyMatch(i -> i.equals(getExprType(expr).getName()))) {
+            return new Type(VOID_TYPE_NAME, false);
+        }
+
+        String name = functionCall.get("name");
+        return table.getReturnType(name);
+    }
 
     private Type getVarExprType(JmmNode varRefExpr) {
         if (varRefExpr.getKind().equals(Kind.THIS.toString())) {

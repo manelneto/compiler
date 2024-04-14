@@ -1,6 +1,19 @@
+import Help;
+
 class Test {
+    public int m() {
+        int a;
+        boolean b;
+        Help h;
+
+        h = new Help();
+        a = this.f();
+        b = Help.f();
+
+        return 0;
+    }
+
     public int f() {
         return 1;
-        return 0;
     }
 }

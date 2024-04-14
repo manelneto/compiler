@@ -15,6 +15,7 @@ public class Methods extends AnalysisVisitor {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.FUNCTION_CALL, this::visitFunctionCall);
         addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
+        addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -24,9 +25,6 @@ public class Methods extends AnalysisVisitor {
     }
 
     private Void visitFunctionCall(JmmNode functionCall, SymbolTable table) {
-
-        typeUtils.setTable(table);
-
         var functionName = functionCall.get("name");
         var child = functionCall.getChild(0);
         var childType = typeUtils.getExprType(child);
@@ -97,9 +95,6 @@ public class Methods extends AnalysisVisitor {
     }
 
     private Void visitReturnStmt(JmmNode returnStmt, SymbolTable table) {
-
-        typeUtils.setTable(table);
-
         var child = returnStmt.getChild(0);
         if (child.getKind().equals(Kind.FUNCTION_CALL.toString())) {
             var childType = typeUtils.getExprType(child.getChild(0));
@@ -115,6 +110,22 @@ public class Methods extends AnalysisVisitor {
         }
 
         reportError("Wrong return type", returnStmt);
+
+        return null;
+    }
+
+    private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
+        if (!currentMethod.equals("main")) {
+            return null;
+        }
+
+        String name = varRefExpr.get("name");
+
+        if (table.getFields().stream().noneMatch(field -> field.getName().equals(name))) {
+            return null;
+        }
+
+        reportError("Cannot access class field inside static function", varRefExpr);
 
         return null;
     }

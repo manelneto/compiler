@@ -1,9 +1,15 @@
 import io;
 
 class Test {
-	public int g() {
-	    int a;
-	    //a = 1;
-        return a.length;
-	}
+    int a;
+
+    /*public static void main(String[] args) {
+        int b;
+        b = a + 5;
+    }*/
+
+    public int f() {
+        a = 5;
+        return a;
+    }
 }

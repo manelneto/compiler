@@ -115,21 +115,9 @@ public class Methods extends AnalysisVisitor {
     }
 
     private Void visitVarRefExpr(JmmNode varRefExpr, SymbolTable table) {
-        if (!currentMethod.equals("main")) {
-            return null;
-        }
-
         String name = varRefExpr.get("name");
 
-        if (table.getLocalVariables(currentMethod).stream().anyMatch(var -> var.getName().equals(name))) {
-            return null;
-        }
-
-        if (table.getParameters(currentMethod).stream().anyMatch(param -> param.getName().equals(name))) {
-            return null;
-        }
-
-        if (table.getFields().stream().noneMatch(field -> field.getName().equals(name))) {
+        if (isValidAccess(name, table, currentMethod)) {
             return null;
         }
 

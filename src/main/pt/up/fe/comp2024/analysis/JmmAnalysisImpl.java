@@ -11,7 +11,6 @@ import pt.up.fe.comp2024.analysis.passes.*;
 import pt.up.fe.comp2024.symboltable.JmmSymbolTableBuilder;
 
 import java.util.ArrayList;
-import java.util.DuplicateFormatFlagsException;
 import java.util.List;
 
 public class JmmAnalysisImpl implements JmmAnalysis {
@@ -23,7 +22,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
         this.analysisPasses = List.of(new UndeclaredVariable(), new ClassNotImported(), new InvalidBinaryOperation(),
                 new Arrays(), new IncompatibleAssignment(), new Conditions(), new This(), new Varargs(), new Methods(),
-                new Duplicated());
+                new Duplicated(), new Statements());
 
     }
 

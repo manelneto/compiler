@@ -68,25 +68,27 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         return new OllirExprResult(code.toString(), computation.toString());
     }
 
-    private OllirExprResult visitFunctionCall(JmmNode node, Void unused) {
+    private OllirExprResult visitFunctionCall(JmmNode functionCall, Void unused) {
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        var child = node.getChild(0);
-        OllirExprResult result = visit(child);
-        String type = OptUtils.toOllirType(typeUtils.getExprType(node));
-        String end = "";
-        var currentTemp = OptUtils.getTemp();
-        code.append(currentTemp);
-        code.append(type);
+        JmmNode child = functionCall.getChild(0);
+        String type = OptUtils.toOllirType(typeUtils.getExprType(functionCall));
 
-        if (node.getParent().getKind().equals(SIMPLE_STMT.toString())) {
-            code.delete(0, code.length());
-        } else {
+        StringBuilder argumentsCode = new StringBuilder();
+
+        for (int i = 1; i < functionCall.getNumChildren(); i++) {
+            OllirExprResult result = visit(functionCall.getJmmChild(i));
+            computation.append(result.getComputation());
+            argumentsCode.append(", " + result.getCode());
+        }
+
+        if (!functionCall.getParent().getKind().equals(SIMPLE_STMT.toString())) {
+            code.append(OptUtils.getTemp());
+            code.append(type);
             computation.append(code);
             computation.append(" " + ASSIGN);
             computation.append(type + " ");
-            end = END_STMT;
         }
 
         if (child.getObject("isInstance", Boolean.class)) {
@@ -99,17 +101,16 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         computation.append(", \"");
-        computation.append(node.get("name"));
+        computation.append(functionCall.get("name"));
         computation.append("\"");
-
-        for (int i = 1; i < node.getNumChildren(); i++) {
-            computation.append(", ");
-            computation.append(visit(node.getJmmChild(i)).getCode());
-        }
+        computation.append(argumentsCode);
 
         computation.append(")");
-        computation.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
-        computation.append(end);
+        computation.append(OptUtils.toOllirType(typeUtils.getExprType(functionCall)));
+
+        if (!functionCall.getParent().getKind().equals(SIMPLE_STMT.toString())) {
+            computation.append(END_STMT);
+        }
 
         return new OllirExprResult(code.toString(), computation.toString());
     }

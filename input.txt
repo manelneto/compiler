@@ -2,7 +2,7 @@ class Test {
     int a;
 
     public int f(int b) {
-        this.f(a);
+        b = this.f(a);
         return a;
     }
 

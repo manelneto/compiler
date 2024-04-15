@@ -240,7 +240,7 @@ public class TypeUtils {
     }
 
     public boolean isField(String varName) {
-        return table.getFields().stream().anyMatch(field -> field.getName().equals(varName));
+        return !isLocal(varName) && !isParameter(varName) && table.getFields().stream().anyMatch(field -> field.getName().equals(varName));
     }
 
     public boolean isImport(String varName) {

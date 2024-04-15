@@ -20,7 +20,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
 
     public JmmAnalysisImpl() {
 
-        this.analysisPasses = List.of(new UndeclaredVariable(), new ClassNotImported(), new InvalidBinaryOperation(),
+        this.analysisPasses = List.of(new UndeclaredVariable(), new UndeclaredMethod(), new ClassNotImported(), new InvalidBinaryOperation(),
                 new Arrays(), new IncompatibleAssignment(), new Conditions(), new This(), new Varargs(), new Methods(),
                 new Duplicated(), new Statements());
 
@@ -50,7 +50,7 @@ public class JmmAnalysisImpl implements JmmAnalysis {
                         e)
                 );
             }
-             if (!reports.isEmpty())
+            if (!reports.isEmpty())
                 return new JmmSemanticsResult(parserResult, table, reports);
         }
 

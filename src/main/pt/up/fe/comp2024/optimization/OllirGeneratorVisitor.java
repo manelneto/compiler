@@ -25,7 +25,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
 
     private final SymbolTable table;
-    TypeUtils typeUtils;
+    private final TypeUtils typeUtils;
 
     private final OllirExprGeneratorVisitor exprVisitor;
 

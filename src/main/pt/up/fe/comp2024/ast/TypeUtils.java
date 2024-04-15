@@ -230,4 +230,16 @@ public class TypeUtils {
 
         return table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName());
     }
+
+    public boolean isLocal(String varName) {
+        return table.getLocalVariables(currentMethod).stream().anyMatch(local -> local.getName().equals(varName));
+    }
+
+    public boolean isParameter(String varName) {
+        return table.getParameters(currentMethod).stream().anyMatch(parameter -> parameter.getName().equals(varName));
+    }
+
+    public boolean isField(String varName) {
+        return table.getFields().stream().anyMatch(field -> field.getName().equals(varName));
+    }
 }

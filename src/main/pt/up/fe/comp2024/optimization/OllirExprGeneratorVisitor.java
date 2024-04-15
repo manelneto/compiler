@@ -16,10 +16,11 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
-    private TypeUtils typeUtils;
-
+    private final SymbolTable table;
+    private final TypeUtils typeUtils;
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
+        this.table = table;
         this.typeUtils = new TypeUtils("", table);
     }
 
@@ -181,13 +182,33 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
 
 
     private OllirExprResult visitVarRef(JmmNode node, Void unused) {
-        var id = node.get("name");
+        String name = node.get("name");
         Type type = typeUtils.getExprType(node);
         String ollirType = OptUtils.toOllirType(type);
 
-        String code = id + ollirType;
+        if (typeUtils.isLocal(name) || typeUtils.isParameter(name)) {
+            String code = name + ollirType;
+            return new OllirExprResult(code);
+        }
 
-        return new OllirExprResult(code);
+        assert typeUtils.isField(name);
+
+        StringBuilder code = new StringBuilder();
+        code.append(OptUtils.getTemp());
+        code.append(ollirType);
+
+        StringBuilder computation = new StringBuilder();
+        computation.append(code);
+        computation.append(" " + ASSIGN);
+        computation.append(ollirType);
+        computation.append(" getfield(this, ");
+        computation.append(name);
+        computation.append(ollirType);
+        computation.append(")");
+        computation.append(ollirType);
+        computation.append(END_STMT);
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     /**

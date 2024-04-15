@@ -65,26 +65,35 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
-        // code to compute the children
-        code.append(rhs.getComputation());
-        code.append(lhs);
-        code.append(lhsType);
+        if (typeUtils.isField(lhs)) {
+            code.append("putfield(this, ");
+            code.append(lhs);
+            code.append(lhsType);
+            code.append(", ");
+            code.append(rhs.getCode());
+            code.append(").V");
+            code.append(END_STMT);
+        } else {
+            // code to compute the children
+            code.append(rhs.getComputation());
+            code.append(lhs);
+            code.append(lhsType);
 
-        // code to compute self
-        // statement has type of lhs
-        Type thisType = typeUtils.getStmtType(node);
-        String typeString = OptUtils.toOllirType(thisType);
+            // code to compute self
+            // statement has type of lhs
+            Type thisType = typeUtils.getStmtType(node);
+            String typeString = OptUtils.toOllirType(thisType);
 
-        code.append(SPACE);
+            code.append(SPACE);
 
-        code.append(ASSIGN);
-        code.append(typeString);
-        code.append(SPACE);
+            code.append(ASSIGN);
+            code.append(typeString);
+            code.append(SPACE);
 
-        code.append(rhs.getCode());
+            code.append(rhs.getCode());
 
-        code.append(END_STMT);
-
+            code.append(END_STMT);
+        }
         return code.toString();
     }
 

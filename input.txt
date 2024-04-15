@@ -1,6 +1,7 @@
-import Super;
-class Test extends Super {
-    public int foo() {
-        return this.f();
+class Test {
+    public int f() {
+        int[] a;
+        a[0] = 0;
+        return 0;
     }
 }

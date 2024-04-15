@@ -53,7 +53,7 @@ public class IncompatibleAssignment extends AnalysisVisitor {
         Type indexType = typeUtils.getExprType(index);
         Type rhsType = typeUtils.getExprType(rhs);
 
-        Type lhsType = typeUtils.getExprType(arrayAssignStmt);
+        Type lhsType = typeUtils.getStmtType(arrayAssignStmt);
 
         if (!indexType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName()) && typeUtils.areTypesAssignable(lhsType, rhsType)) {
             return null;

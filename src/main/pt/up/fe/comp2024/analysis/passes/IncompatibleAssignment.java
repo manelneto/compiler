@@ -15,7 +15,7 @@ public class IncompatibleAssignment extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(Kind.ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);  // TODO: Criar outra função
+        addVisit(Kind.ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -55,11 +55,9 @@ public class IncompatibleAssignment extends AnalysisVisitor {
         Type indexType = typeUtils.getExprType(index);
         Type lhsType = typeUtils.getExprType(arrayAssignStmt);
 
-        if (typeUtils.areTypesAssignable(lhsType, rhsType)) {
-            return null;
-        }
+        boolean indexValid = !indexType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName());
 
-        if (!indexType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName())){
+        if (typeUtils.areTypesArrayAssignable(lhsType, rhsType) && indexValid) {
             return null;
         }
 

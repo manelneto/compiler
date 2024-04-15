@@ -3,8 +3,8 @@ class Test extends Super{
 
     public int foo(){
         int[] a;
-        int b;
-        a[b] = b;
+        boolean b;
+        a[0] = Super.f();
         return 0;
     }
 

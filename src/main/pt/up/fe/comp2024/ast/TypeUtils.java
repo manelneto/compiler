@@ -169,4 +169,13 @@ public class TypeUtils {
 
         return rhsType.getName().equals(THIS_TYPE_NAME) && (table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName()));
     }
+
+    public boolean areTypesArrayAssignable(Type lhsType, Type rhsType) {
+        if (rhsType.getName().equals(VOID_TYPE_NAME)) {
+            return true;
+        }
+
+        return lhsType.getName().equals(getIntTypeName()) && rhsType.getName().equals(getIntTypeName())
+                && lhsType.isArray() && !rhsType.isArray();
+    }
 }

@@ -1,7 +1,7 @@
 class Test {
     public int f() {
-        int[] a;
-        a[0] = 0;
+        Test t;
+        t = this;
         return 0;
     }
 }

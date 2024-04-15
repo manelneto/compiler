@@ -228,6 +228,6 @@ public class TypeUtils {
             return true;
         }
 
-        return rhsType.getName().equals("this") && (table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName()));
+        return table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName());
     }
 }

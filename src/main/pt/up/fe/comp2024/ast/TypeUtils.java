@@ -242,4 +242,8 @@ public class TypeUtils {
     public boolean isField(String varName) {
         return table.getFields().stream().anyMatch(field -> field.getName().equals(varName));
     }
+
+    public boolean isImport(String varName) {
+        return table.getImports().stream().anyMatch(i -> i.equals(varName));
+    }
 }

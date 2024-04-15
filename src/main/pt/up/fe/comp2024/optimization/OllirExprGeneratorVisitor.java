@@ -186,7 +186,7 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         Type type = typeUtils.getExprType(node);
         String ollirType = OptUtils.toOllirType(type);
 
-        if (typeUtils.isLocal(name) || typeUtils.isParameter(name)) {
+        if (typeUtils.isLocal(name) || typeUtils.isParameter(name) || typeUtils.isImport(name)) {
             String code = name + ollirType;
             return new OllirExprResult(code);
         }

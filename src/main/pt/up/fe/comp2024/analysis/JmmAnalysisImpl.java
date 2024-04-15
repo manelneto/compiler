@@ -51,9 +51,8 @@ public class JmmAnalysisImpl implements JmmAnalysis {
                         e)
                 );
             }
-            if (!reports.isEmpty())
+             if (!reports.isEmpty())
                 return new JmmSemanticsResult(parserResult, table, reports);
-
         }
 
         return new JmmSemanticsResult(parserResult, table, reports);

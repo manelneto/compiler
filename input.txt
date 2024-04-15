@@ -1,17 +1,11 @@
-import io;
+import Super;
+class Test extends Super{
 
-class Test {
-    int a;
-
-    public static void main(String[] args) {
-        int a;
+    public int foo(){
+        int[] a;
         int b;
-        a = 1;
-        b = a + 5;
+        a[b] = b;
+        return 0;
     }
 
-    public int f() {
-        a = 5;
-        return a;
-    }
 }

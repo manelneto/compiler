@@ -14,7 +14,7 @@ public class IncompatibleAssignment extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(Kind.ARRAY_ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(Kind.ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);  // TODO: Criar outra função
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {
@@ -33,6 +33,29 @@ public class IncompatibleAssignment extends AnalysisVisitor {
         }
 
         reportError("Invalid assignment", assignStmt);
+
+        return null;
+    }
+
+    private Void visitArrayAssignStmt (JmmNode arrayAssignStmt, SymbolTable table) {
+        JmmNode rhs = arrayAssignStmt.getChild(1);
+        JmmNode index = arrayAssignStmt.getChild(0);
+
+
+        Type rhsType = typeUtils.getExprType(rhs);
+        Type indexType = typeUtils.getExprType(index);
+        Type lhsType = typeUtils.getExprType(arrayAssignStmt);
+
+        if (typeUtils.areTypesAssignable(lhsType, rhsType)) {
+            return null;
+        }
+
+        if (!indexType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName())){
+            return null;
+        }
+
+        reportError("Invalid array assignment", arrayAssignStmt);
+
 
         return null;
     }

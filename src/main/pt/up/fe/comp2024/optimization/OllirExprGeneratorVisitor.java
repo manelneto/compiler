@@ -80,52 +80,24 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         code.append(currentTemp);
         code.append(type);
 
-        if (!child.getKind().equals(FUNCTION_CALL.toString())) {
-            if (node.getParent().getKind().equals(SIMPLE_STMT.toString())) {
-                code.delete(0, code.length());
-            } else {
-                computation.append(code);
-                computation.append(" " + ASSIGN);
-                computation.append(type + " ");
-                end = END_STMT;
-            }
-
-            if (child.getObject("isInstance", Boolean.class)) {
-                computation.append("invokevirtual(");
-                computation.append(child.get("name"));
-                computation.append(OptUtils.toOllirType(typeUtils.getExprType(child)));
-            } else {
-                computation.append("invokestatic(");
-                computation.append(child.get("name"));
-            }
-
-            computation.append(", \"");
-            computation.append(node.get("name"));
-            computation.append("\"");
-
-            for (int i = 1; i < node.getNumChildren(); i++) {
-                computation.append(", ");
-                computation.append(visit(node.getJmmChild(i)).getCode());
-            }
-
-            computation.append(")");
-            computation.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
-            computation.append(end);
-
-            return new OllirExprResult(code.toString(), computation.toString());
-        }
-
-        computation.append(result.getCode());
-
-        if (node.getParent().getKind().equals(FUNCTION_CALL.toString())) {
+        if (node.getParent().getKind().equals(SIMPLE_STMT.toString())) {
+            code.delete(0, code.length());
+        } else {
             computation.append(code);
             computation.append(" " + ASSIGN);
-            computation.append(type);
+            computation.append(type + " ");
             end = END_STMT;
         }
 
-        computation.append("invokevirtual(");
-        computation.append(result.getComputation());
+        if (child.getObject("isInstance", Boolean.class)) {
+            computation.append("invokevirtual(");
+            computation.append(child.get("name"));
+            computation.append(OptUtils.toOllirType(typeUtils.getExprType(child)));
+        } else {
+            computation.append("invokestatic(");
+            computation.append(child.get("name"));
+        }
+
         computation.append(", \"");
         computation.append(node.get("name"));
         computation.append("\"");
@@ -136,12 +108,8 @@ public class OllirExprGeneratorVisitor extends PreorderJmmVisitor<Void, OllirExp
         }
 
         computation.append(")");
-
         computation.append(OptUtils.toOllirType(typeUtils.getExprType(node)));
         computation.append(end);
-
-        code.append(currentTemp);
-        code.append(type);
 
         return new OllirExprResult(code.toString(), computation.toString());
     }

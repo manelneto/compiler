@@ -1,9 +1,10 @@
 class Test {
     int a;
 
-    public int f(int a1) {
-        a = a1;
+    public int f(int b) {
+        this.f(a);
         return a;
     }
+
 
 }

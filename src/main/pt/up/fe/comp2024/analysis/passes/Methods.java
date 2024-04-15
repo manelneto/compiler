@@ -1,6 +1,7 @@
 package pt.up.fe.comp2024.analysis.passes;
 
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
+import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.analysis.AnalysisVisitor;
 import pt.up.fe.comp2024.ast.Kind;
@@ -95,17 +96,12 @@ public class Methods extends AnalysisVisitor {
     }
 
     private Void visitReturnStmt(JmmNode returnStmt, SymbolTable table) {
-        var child = returnStmt.getChild(0);
-        if (child.getKind().equals(Kind.FUNCTION_CALL.toString())) {
-            var childType = typeUtils.getExprType(child.getChild(0));
+        Type stmtType = typeUtils.getStmtType(returnStmt);
 
-            if (table.getImports().stream().anyMatch(i -> i.equals(childType.getName()))) {
-                return null;
-            }
-        }
+        JmmNode expr = returnStmt.getChild(0);
+        Type exprType = typeUtils.getExprType(expr);
 
-        var returnType = typeUtils.getExprType(child);
-        if (returnType.equals(table.getReturnType(currentMethod))) {
+        if (exprType.equals(stmtType)) {
             return null;
         }
 

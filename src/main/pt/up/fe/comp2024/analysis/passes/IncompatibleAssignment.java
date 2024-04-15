@@ -34,7 +34,7 @@ public class IncompatibleAssignment extends AnalysisVisitor {
 
         JmmNode rhs = assignStmt.getChild(assignStmt.getChildren().size() - 1);
 
-        Type lhsType = typeUtils.getExprType(assignStmt);
+        Type lhsType = typeUtils.getStmtType(assignStmt);
         Type rhsType = typeUtils.getExprType(rhs);
 
         if (typeUtils.areTypesAssignable(lhsType, rhsType)) {
@@ -46,23 +46,20 @@ public class IncompatibleAssignment extends AnalysisVisitor {
         return null;
     }
 
-    private Void visitArrayAssignStmt (JmmNode arrayAssignStmt, SymbolTable table) {
-        JmmNode rhs = arrayAssignStmt.getChild(1);
+    private Void visitArrayAssignStmt(JmmNode arrayAssignStmt, SymbolTable table) {
         JmmNode index = arrayAssignStmt.getChild(0);
+        JmmNode rhs = arrayAssignStmt.getChild(1);
 
-
-        Type rhsType = typeUtils.getExprType(rhs);
         Type indexType = typeUtils.getExprType(index);
+        Type rhsType = typeUtils.getExprType(rhs);
+
         Type lhsType = typeUtils.getExprType(arrayAssignStmt);
 
-        boolean indexValid = !indexType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName());
-
-        if (typeUtils.areTypesArrayAssignable(lhsType, rhsType) && indexValid) {
+        if (!indexType.isArray() && indexType.getName().equals(typeUtils.getIntTypeName()) && typeUtils.areTypesAssignable(lhsType, rhsType)) {
             return null;
         }
 
         reportError("Invalid array assignment", arrayAssignStmt);
-
 
         return null;
     }

@@ -1,27 +1,33 @@
 package pt.up.fe.comp2024.ast;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 
 public class TypeUtils {
-
     private final String INT_TYPE_NAME = "int";
-    private final String STRING_TYPE_NAME = "String";
-    private final String VOID_TYPE_NAME = "void";
     private final String BOOLEAN_TYPE_NAME = "boolean";
-    private final String THIS_TYPE_NAME = "this";
+    private final String VOID_TYPE_NAME = "void";
     private String currentMethod;
     private SymbolTable table;
+
+    public TypeUtils() {
+        this.currentMethod = "";
+        this.table = null;
+    }
 
     public TypeUtils(String currentMethod, SymbolTable table) {
         this.currentMethod = currentMethod;
         this.table = table;
     }
 
-    public TypeUtils() {
-        this.currentMethod = "";
-        this.table = null;
+    public void setCurrentMethod(String currentMethod) {
+        this.currentMethod = currentMethod;
+    }
+
+    public void setTable(SymbolTable table) {
+        this.table = table;
     }
 
     public String getIntTypeName() {
@@ -32,49 +38,117 @@ public class TypeUtils {
         return BOOLEAN_TYPE_NAME;
     }
 
-    public void setCurrentMethod(String currentMethod1) {
-        this.currentMethod = currentMethod1;
+    public Type getVoidType() {
+        return new Type(VOID_TYPE_NAME, false);
     }
 
-    public void setTable(SymbolTable table1) {
-        this.table = table1;
+    public Type getStringArrayType() {
+        return new Type("String", true);
     }
 
-    /**
-     * Gets the {@link Type} of an arbitrary expression.
-     *
-     * @param expr
-     * @return
-     */
+    public Type getStmtType(JmmNode stmt) {
+        assert Kind.fromString(stmt.getKind()).isStmt();
+
+        if (stmt.hasAttribute("type") && stmt.hasAttribute("isArray")) {
+            return new Type(stmt.get("type"), stmt.getObject("isArray", Boolean.class));
+        }
+
+        Kind kind = Kind.fromString(stmt.getKind());
+
+        Type type = switch (kind) {
+            case SIMPLE_STMT -> getExprType(stmt.getChild(0));
+            case ASSIGN_STMT -> getAssignStmtType(stmt);
+            case ARRAY_ASSIGN_STMT -> new Type(INT_TYPE_NAME, false);
+            case RETURN_STMT -> table.getReturnType(currentMethod);
+            default -> throw new RuntimeException("Can't compute type for statement: '" + kind + "'");
+        };
+
+        stmt.putObject("type", type.getName());
+        stmt.putObject("isArray", type.isArray());
+
+        return type;
+    }
+
+    private Type getAssignStmtType(JmmNode assignStmt) {
+        assert assignStmt.getKind().equals(Kind.ASSIGN_STMT.toString());
+
+        String varName = assignStmt.get("name");
+        for (Symbol local : table.getLocalVariables(currentMethod)) {
+            if (local.getName().equals(varName)) {
+                return local.getType();
+            }
+        }
+
+        for (Symbol param : table.getParameters(currentMethod)) {
+            if (param.getName().equals(varName)) {
+                return param.getType();
+            }
+        }
+
+        for (Symbol field : table.getFields()) {
+            if (field.getName().equals(varName)) {
+                return field.getType();
+            }
+        }
+
+        return null;
+    }
+
     public Type getExprType(JmmNode expr) {
+        assert Kind.fromString(expr.getKind()).isExpr();
 
         if (expr.hasAttribute("type") && expr.hasAttribute("isArray")) {
             return new Type(expr.get("type"), expr.getObject("isArray", Boolean.class));
         }
 
-        var kind = Kind.fromString(expr.getKind());
+        Kind kind = Kind.fromString(expr.getKind());
 
         Type type = switch (kind) {
-            case BINARY_EXPR -> getBinExprType(expr);
-            case VAR_REF_EXPR, ASSIGN_STMT, ARRAY_ASSIGN_STMT, THIS -> getVarExprType(expr);
-            case INTEGER_LITERAL, ARRAY_ACCESS, LENGTH -> new Type(INT_TYPE_NAME, false);
-            case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
-            case NEW_OBJECT -> new Type(expr.get("name"), false);
-            case FUNCTION_CALL -> getFunctionCallType(expr);
-            case ARRAY, NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
             case PAREN_EXPR -> getExprType(expr.getChild(0));
-            default -> throw new UnsupportedOperationException("Can't compute type for expression kind '" + kind + "'");
+            case ARRAY_ACCESS -> new Type(INT_TYPE_NAME, false);
+            case FUNCTION_CALL -> getFunctionCallType(expr);
+            case LENGTH -> new Type(INT_TYPE_NAME, false);
+            case UNARY_EXPR -> new Type(BOOLEAN_TYPE_NAME, false);
+            case NEW_OBJECT -> new Type(expr.get("name"), false);
+            case NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
+            case BINARY_EXPR -> getBinaryExprType(expr);
+            case ARRAY -> new Type(INT_TYPE_NAME, true);
+            case INTEGER_LITERAL -> new Type(INT_TYPE_NAME, false);
+            case BOOLEAN_LITERAL -> new Type(BOOLEAN_TYPE_NAME, false);
+            case VAR_REF_EXPR -> getVarRefExprType(expr);
+            case THIS -> getThisType(expr);
+            default -> throw new RuntimeException("Can't compute type for expression: '" + kind + "'");
         };
 
-        assert type != null;
-
-        expr.putObject("type", type.getName());
-        expr.putObject("isArray", type.isArray());
+        if (type != null) {
+            expr.putObject("type", type.getName());
+            expr.putObject("isArray", type.isArray());
+        }
 
         return type;
     }
 
-    private Type getBinExprType(JmmNode binaryExpr) {
+    private Type getFunctionCallType(JmmNode functionCall) {
+        assert functionCall.getKind().equals(Kind.FUNCTION_CALL.toString());
+
+        JmmNode expr = functionCall.getChild(0);
+        String functionName = functionCall.get("name");
+
+        if ((expr.getKind().equals(Kind.THIS.toString()) && table.getSuper().isEmpty()) || getExprType(expr).getName().equals(table.getClassName()) && table.getMethods().contains(functionName)) {
+            return table.getReturnType(functionName);
+        }
+
+        JmmNode stmt = functionCall.getParent();
+
+        if (stmt.getKind().equals(Kind.SIMPLE_STMT.toString())) {
+            return new Type(VOID_TYPE_NAME, false);
+        }
+
+        return getStmtType(stmt);
+    }
+
+    private Type getBinaryExprType(JmmNode binaryExpr) {
+        assert binaryExpr.getKind().equals(Kind.BINARY_EXPR.toString());
 
         String operator = binaryExpr.get("op");
 
@@ -86,45 +160,32 @@ public class TypeUtils {
         };
     }
 
-    private Type getFunctionCallType(JmmNode functionCall) {
-        JmmNode expr = functionCall.getChild(0);
-        if (table.getImports().stream().anyMatch(i -> i.equals(expr.get("name"))) || table.getImports().stream().anyMatch(i -> i.equals(getExprType(expr).getName()))) {
-            return new Type(VOID_TYPE_NAME, false);
-        }
+    private Type getVarRefExprType(JmmNode varRefExpr) {
+        assert varRefExpr.getKind().equals(Kind.VAR_REF_EXPR.toString());
 
-        String name = functionCall.get("name");
-        return table.getReturnType(name);
-    }
-
-    private Type getVarExprType(JmmNode varRefExpr) {
-        if (varRefExpr.getKind().equals(Kind.THIS.toString())) {
-            varRefExpr.putObject("isInstance", true);
-            return new Type(table.getClassName(), false);
-        }
-
-        var varName = varRefExpr.get("name");
-        for (var local : table.getLocalVariables(currentMethod)) {
+        String varName = varRefExpr.get("name");
+        for (Symbol local : table.getLocalVariables(currentMethod)) {
             if (local.getName().equals(varName)) {
                 varRefExpr.putObject("isInstance", true);
                 return local.getType();
             }
         }
 
-        for (var param : table.getParameters(currentMethod)) {
+        for (Symbol param : table.getParameters(currentMethod)) {
             if (param.getName().equals(varName)) {
                 varRefExpr.putObject("isInstance", true);
                 return param.getType();
             }
         }
 
-        for (var field : table.getFields()) {
+        for (Symbol field : table.getFields()) {
             if (field.getName().equals(varName)) {
                 varRefExpr.putObject("isInstance", true);
                 return field.getType();
             }
         }
 
-        for (var i : table.getImports()) {
+        for (String i : table.getImports()) {
             if (i.equals(varName)) {
                 varRefExpr.putObject("isInstance", false);
                 return new Type(i, false);
@@ -134,27 +195,27 @@ public class TypeUtils {
         return null;
     }
 
-    public Type getVoidType() {
-        return new Type(VOID_TYPE_NAME, false);
-    }
+    public Type getThisType(JmmNode this_) {
+        assert this_.getKind().equals(Kind.THIS.toString());
 
-    public Type getThisType() {
-        return new Type(THIS_TYPE_NAME, false);
-    }
+        this_.putObject("isInstance", true);
 
-    public Type getStringArrayType() {
-        return new Type(STRING_TYPE_NAME, true);
+        JmmNode parent = this_.getParent();
+        String name = parent.get("name");
+
+        if (table.getMethods().contains(name)) {
+            return new Type(table.getClassName(), false);
+        }
+
+        return new Type(table.getSuper(), false);
     }
 
     public boolean isIndexable(Type indexType) {
+        // TODO
         return indexType.equals(getVoidType()) || indexType.equals(new Type(INT_TYPE_NAME, false));
     }
 
     public boolean areTypesAssignable(Type lhsType, Type rhsType) {
-        if (rhsType.getName().equals(VOID_TYPE_NAME)) {
-            return true;
-        }
-
         if (table.getImports().stream().anyMatch(i -> i.equals(lhsType.getName())) && table.getImports().stream().anyMatch(i -> i.equals(rhsType.getName()))) {
             return true;
         }
@@ -167,15 +228,6 @@ public class TypeUtils {
             return true;
         }
 
-        return rhsType.getName().equals(THIS_TYPE_NAME) && (table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName()));
-    }
-
-    public boolean areTypesArrayAssignable(Type lhsType, Type rhsType) {
-        if (rhsType.getName().equals(VOID_TYPE_NAME)) {
-            return true;
-        }
-
-        return lhsType.getName().equals(getIntTypeName()) && rhsType.getName().equals(getIntTypeName())
-                && lhsType.isArray() && !rhsType.isArray();
+        return rhsType.getName().equals("this") && (table.getClassName().equals(lhsType.getName()) || table.getSuper().equals(lhsType.getName()));
     }
 }

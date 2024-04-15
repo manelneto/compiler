@@ -59,9 +59,8 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
     }
 
     private String visitAssignStmt(JmmNode node, Void unused) {
-
         var lhs = node.get("name");
-        var lhsType = OptUtils.toOllirType(typeUtils.getExprType(node));
+        var lhsType = OptUtils.toOllirType(typeUtils.getStmtType(node));
         var rhs = exprVisitor.visit(node.getJmmChild(0));
 
         StringBuilder code = new StringBuilder();
@@ -73,7 +72,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         // code to compute self
         // statement has type of lhs
-        Type thisType = typeUtils.getExprType(node);
+        Type thisType = typeUtils.getStmtType(node);
         String typeString = OptUtils.toOllirType(thisType);
 
         code.append(SPACE);

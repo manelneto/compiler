@@ -1,11 +1,6 @@
 import Super;
-class Test extends Super{
-
-    public int foo(){
-        int[] a;
-        boolean b;
-        a[0] = Super.f();
-        return 0;
+class Test extends Super {
+    public int foo() {
+        return this.f();
     }
-
 }

@@ -109,7 +109,7 @@ public class TypeUtils {
             case FUNCTION_CALL -> getFunctionCallType(expr);
             case LENGTH -> new Type(INT_TYPE_NAME, false);
             case UNARY_EXPR -> new Type(BOOLEAN_TYPE_NAME, false);
-            case NEW_OBJECT -> new Type(expr.get("name"), false);
+            case NEW_OBJECT -> getNewObjectType(expr);
             case NEW_ARRAY -> new Type(INT_TYPE_NAME, true);
             case BINARY_EXPR -> getBinaryExprType(expr);
             case ARRAY -> new Type(INT_TYPE_NAME, true);
@@ -138,13 +138,28 @@ public class TypeUtils {
             return table.getReturnType(functionName);
         }
 
-        JmmNode stmt = functionCall.getParent();
+        JmmNode parent = functionCall.getParent();
 
-        if (stmt.getKind().equals(Kind.SIMPLE_STMT.toString())) {
+        while (!Kind.fromString(parent.getKind()).isStmt() && !parent.getKind().equals(Kind.FUNCTION_CALL.toString())) {
+            parent = parent.getParent();
+        }
+
+        if (parent.getKind().equals(Kind.SIMPLE_STMT.toString())) {
             return new Type(VOID_TYPE_NAME, false);
         }
 
-        return getStmtType(stmt);
+        if (parent.getKind().equals(Kind.FUNCTION_CALL.toString())) {
+            String method = parent.get("name");
+            int pos = functionCall.getIndexOfSelf() - 1;
+            return table.getParameters(method).get(pos).getType();
+        }
+
+        return getStmtType(parent);
+    }
+
+    private Type getNewObjectType(JmmNode newObject) {
+        annotate(newObject, "isInstance", true);
+        return new Type(newObject.get("name"), false);
     }
 
     private Type getBinaryExprType(JmmNode binaryExpr) {
@@ -166,28 +181,28 @@ public class TypeUtils {
         String varName = varRefExpr.get("name");
         for (Symbol local : table.getLocalVariables(currentMethod)) {
             if (local.getName().equals(varName)) {
-                varRefExpr.putObject("isInstance", true);
+                annotate(varRefExpr, "isInstance", true);
                 return local.getType();
             }
         }
 
         for (Symbol param : table.getParameters(currentMethod)) {
             if (param.getName().equals(varName)) {
-                varRefExpr.putObject("isInstance", true);
+                annotate(varRefExpr, "isInstance", true);
                 return param.getType();
             }
         }
 
         for (Symbol field : table.getFields()) {
             if (field.getName().equals(varName)) {
-                varRefExpr.putObject("isInstance", true);
+                annotate(varRefExpr, "isInstance", true);
                 return field.getType();
             }
         }
 
         for (String i : table.getImports()) {
             if (i.equals(varName)) {
-                varRefExpr.putObject("isInstance", false);
+                annotate(varRefExpr, "isInstance", false);
                 return new Type(i, false);
             }
         }
@@ -195,10 +210,10 @@ public class TypeUtils {
         return null;
     }
 
-    public Type getThisType(JmmNode this_) {
+    private Type getThisType(JmmNode this_) {
         assert this_.getKind().equals(Kind.THIS.toString());
 
-        this_.putObject("isInstance", true);
+        annotate(this_, "isInstance", true);
 
         JmmNode parent = this_.getParent();
         String name = parent.get("name");
@@ -208,6 +223,14 @@ public class TypeUtils {
         }
 
         return new Type(table.getSuper(), false);
+    }
+
+    private static void annotate(JmmNode node, String name, boolean value) {
+        JmmNode parent = node.getParent();
+        if (parent.getKind().equals(Kind.PAREN_EXPR.toString())) {
+            parent.putObject(name, value);
+        }
+        node.putObject(name, value);
     }
 
     public boolean isIndexable(Type indexType) {

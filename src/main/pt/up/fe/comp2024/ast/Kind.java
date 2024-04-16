@@ -49,7 +49,6 @@ public enum Kind {
     }
 
     public static Kind fromString(String kind) {
-
         for (Kind k : Kind.values()) {
             if (k.getNodeName().equals(kind)) {
                 return k;

@@ -198,18 +198,23 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (var inst : method.getInstructions()) {
-            /*var instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));*/
-            for (var i = 0; i < StringLines.getLines(generators.apply(inst)).size(); i++) {
+            var instCode = StringLines.getLines(generators.apply(inst)).stream()
+                    .collect(Collectors.joining(NL + TAB, TAB, NL));
+            /*for (var i = 0; i < StringLines.getLines(generators.apply(inst)).size(); i++) {
                 var result = StringLines.getLines(generators.apply(inst)).get(i);
                 if (result.isEmpty())
                     continue;
                 code.append(NL + TAB);
                 code.append(result);
-                if (i != StringLines.getLines(generators.apply(inst)).size())
+                if (i != StringLines.getLines(generators.apply(inst)).size()) // TODO: O que é que se está a passar?
                     code.append(NL);
+            }*/
+            code.append(instCode);
+
+            if (inst instanceof CallInstruction callInstruction) {
+                if (!callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID))
+                    code.append(TAB + "pop" + NL);
             }
-            //code.append(instCode);
         }
 
         code.append(".end method\n");
@@ -373,7 +378,7 @@ public class JasminGenerator {
         ArrayList<String> argsType;
         String returnType;
         String invocationCode;
-
+        if (callInstruction.hasChildren())
         switch (instType) {
             case invokevirtual :
                 callerString = callInstruction.getCaller().toString();

@@ -1,11 +1,10 @@
 import Other;
 
 class Test {
-    Other o;
+    boolean b;
 
-    public int fields() {
-        Other o1;
-        o1 = o.getName();
+    public int fields(int name) {
+        b = true;
         return 0;
     }
 }

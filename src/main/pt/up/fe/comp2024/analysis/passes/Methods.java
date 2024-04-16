@@ -77,7 +77,6 @@ public class Methods extends AnalysisVisitor {
                 return null;
             }
         } else { // sem varargs
-
             if (args.size() == children.size() - 1) {
                 for (int i = 1; i < children.size(); i++) {
                     if (!typeUtils.getExprType(children.get(i)).equals(args.get(i - 1).getType())) {

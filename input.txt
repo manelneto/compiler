@@ -1,10 +1,16 @@
-import Other;
+import Super;
+import X;
+import Y;
+import Outras;
 
-class Test {
-    boolean b;
+class Test extends Super {
+    public int fields() {
+        Outras outras;
+        this.foo((new X()).coisas(), this.outros(new Y()), outras.coisas());
+        return 0;
+    }
 
-    public int fields(int name) {
-        b = true;
+    public int foo(int a, int b, int c) {
         return 0;
     }
 }

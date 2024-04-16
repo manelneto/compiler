@@ -75,7 +75,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             computation.append(type + " ");
         }
 
-        if (child.getObject("isInstance", Boolean.class)) {
+        if (child.hasAttribute("isInstance") && child.getObject("isInstance", Boolean.class)) {
             computation.append("invokevirtual(");
         } else {
             computation.append("invokestatic(");

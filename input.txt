@@ -1,22 +1,11 @@
-import Help;
+import Other;
 
 class Test {
-    public int m(int a, Help h) {
-        int c;
-        c = 1;
+    Other o;
+
+    public int fields() {
+        Other o1;
+        o1 = o.getName();
         return 0;
-    }
-
-    public int f() {
-        int b;
-        int c;
-        int aux;
-        Help h;
-        b = 3;
-        h = new Help();
-        aux = 1 + 1 + b;
-        c = this.m(aux, h); //falta news e f()
-
-        return c;
     }
 }

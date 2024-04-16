@@ -33,6 +33,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(INTEGER_LITERAL, this::visitInteger);
         addVisit(FUNCTION_CALL, this::visitFunctionCall);
         addVisit(NEW_OBJECT, this::visitNewObject);
+        addVisit(THIS, this::visitThis);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -73,6 +74,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         JmmNode child = functionCall.getChild(0);
         String type = OptUtils.toOllirType(typeUtils.getExprType(functionCall));
 
+        OllirExprResult exprResult = visit(child);
+        computation.append(exprResult.getComputation());
+
         StringBuilder argumentsCode = new StringBuilder();
 
         for (int i = 1; i < functionCall.getNumChildren(); i++) {
@@ -91,13 +95,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         if (child.getObject("isInstance", Boolean.class)) {
             computation.append("invokevirtual(");
-            computation.append(child.get("name"));
-            computation.append(OptUtils.toOllirType(typeUtils.getExprType(child)));
         } else {
             computation.append("invokestatic(");
-            computation.append(child.get("name"));
         }
 
+        computation.append(exprResult.getCode());
         computation.append(", \"");
         computation.append(functionCall.get("name"));
         computation.append("\"");
@@ -152,7 +154,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         Type type = typeUtils.getExprType(node);
         String ollirType = OptUtils.toOllirType(type);
 
-        if (typeUtils.isLocal(name) || typeUtils.isParameter(name) || typeUtils.isImport(name)) {
+        if (typeUtils.isImport(name)) {
+            return new OllirExprResult(name);
+        }
+
+        if (typeUtils.isLocal(name) || typeUtils.isParameter(name)) {
             String code = name + ollirType;
             return new OllirExprResult(code);
         }
@@ -175,6 +181,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(END_STMT);
 
         return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult visitThis(JmmNode node, Void unused) {
+        String name = node.get("name"); // this
+        return new OllirExprResult(name);
     }
 
     /**

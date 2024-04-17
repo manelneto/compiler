@@ -1,15 +1,12 @@
-import java.util.ArrayList;
+import Imported;
+import java.util.Scanner;
 
-class Test {
-    public ArrayList f(ArrayList l) {
-        l = new ArrayList();
-        return l;
+class Sample extends Scanner {
+    public Scanner f(Scanner s) {
+        return s;
     }
 
-    public int g(int i) {
+    public Imported g(Imported i) {
         return i;
-    }
-
-    public static void main(String[] args) {
     }
 }

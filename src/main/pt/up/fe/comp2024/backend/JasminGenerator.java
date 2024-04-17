@@ -35,6 +35,8 @@ public class JasminGenerator {
     public JasminGenerator(OllirResult ollirResult) {
         this.ollirResult = ollirResult;
 
+        ollirResult.getOllirClass().getImports().add("java/lang/Object");
+
         reports = new ArrayList<>();
         code = null;
         currentMethod = null;
@@ -74,9 +76,10 @@ public class JasminGenerator {
         String className = ollirResult.getOllirClass().getClassName();
         code.append(".class public ").append(className).append(NL).append(NL);
 
-        String superClassName = ollirResult.getOllirClass().getSuperClass();
-        if (superClassName == null || superClassName.equals("Object"))
-            superClassName = "java/lang/Object";
+        String superClass = ollirResult.getOllirClass().getSuperClass();
+        if (superClass == null)
+            superClass = "Object";
+        String superClassName = getFullName(superClass);
         code.append(".super ").append(superClassName).append(NL);
 
         String defaultConstructor = ";default constructor\n" +

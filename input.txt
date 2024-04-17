@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-
 class Test {
-    public ArrayList f(String args, ArrayList l) {
-        return l;
+    public static void main(String[] args) {
     }
 }

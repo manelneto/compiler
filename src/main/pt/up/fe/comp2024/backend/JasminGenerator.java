@@ -10,8 +10,6 @@ import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -51,11 +49,10 @@ public class JasminGenerator {
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(Field.class, this::generateField);
-        generators.put(PutFieldInstruction.class, this::generatePutFieldInst);
-        generators.put(GetFieldInstruction.class, this::generateGetFieldInst);
-        generators.put(CallInstruction.class, this::generateCallInst);
+        generators.put(GetFieldInstruction.class, this::generateGetField);
+        generators.put(PutFieldInstruction.class, this::generatePutField);
+        generators.put(CallInstruction.class, this::generateCall);
     }
-
 
     public List<Report> getReports() {
         return reports;
@@ -71,92 +68,40 @@ public class JasminGenerator {
         return code;
     }
 
-
     private String generateClassUnit(ClassUnit classUnit) {
+        StringBuilder code = new StringBuilder();
 
-        var code = new StringBuilder();
-
-        // generate class name
-        var className = ollirResult.getOllirClass().getClassName();
+        String className = ollirResult.getOllirClass().getClassName();
         code.append(".class public ").append(className).append(NL).append(NL);
-        var superClassName = ollirResult.getOllirClass().getSuperClass();
-        if (superClassName == null || superClassName.equals("Object"))                 // pode ser null ou ""
+
+        String superClassName = ollirResult.getOllirClass().getSuperClass();
+        if (superClassName == null || superClassName.equals("Object"))
             superClassName = "java/lang/Object";
         code.append(".super ").append(superClassName).append(NL);
 
-        // generate a single constructor method
         String defaultConstructor = ";default constructor\n" +
                 ".method public <init>()V\n" +
                 TAB + "aload 0\n" +
-                TAB + getSuperClassConstructorCall() +
+                TAB + "invokespecial " + superClassName + ".<init>()V\n" +
                 TAB + "return\n" +
                 ".end method\n";
 
-        for (var field : ollirResult.getOllirClass().getFields()) {
+        for (Field field : ollirResult.getOllirClass().getFields()) {
             code.append(generators.apply(field));
         }
         code.append(NL);
         code.append(defaultConstructor);
 
-        // generate code for all other methods
-        for (var method : ollirResult.getOllirClass().getMethods()) {
-
-            // Ignore constructor, since there is always one constructor
-            // that receives no arguments, and has been already added
-            // previously
+        for (Method method : ollirResult.getOllirClass().getMethods()) {
             if (method.isConstructMethod()) {
+                // Ignore constructor, since there is always one constructor that receives no arguments, and has been already added
                 continue;
             }
-
             code.append(generators.apply(method));
         }
 
         return code.toString();
     }
-
-    private String getSuperClassConstructorCall() {
-        var superClassName = ollirResult.getOllirClass().getSuperClass();
-        if (superClassName == null || superClassName.equals("Object"))
-            superClassName = "java/lang/Object";
-        return "invokespecial " + superClassName + ".<init>()V\n";
-    }
-
-    private String getConstructorCall(String className, List<String> argsType) {
-        var code = new StringBuilder();
-        code.append("invokespecial ");
-        code.append(className);
-        code.append(".<init>(");
-        for (var argType : argsType) {
-            code.append(argType);
-        }
-        code.append(")V");
-        return code.toString();
-    }
-
-    private String getVirtualCall(String className, String methodName, List<String> argsType, String returnType) {
-        var code = new StringBuilder();
-        code.append("invokevirtual ");
-        code.append(className);
-        code.append("." + methodName + "(");
-        for (var argType : argsType) {
-            code.append(argType);
-        }
-        code.append(")" + returnType);
-        return code.toString();
-    }
-
-    private String getStaticCall(String className, String methodName, List<String> argsType, String returnType) { // TODO: Repetição do código do getVirtualCall()
-        var code = new StringBuilder();
-        code.append("invokestatic ");
-        code.append(className);
-        code.append("." + methodName + "(");
-        for (var argType : argsType) {
-            code.append(argType);
-        }
-        code.append(")" + returnType);
-        return code.toString();
-    }
-
 
     private String generateMethod(Method method) {
         currentMethod = method;
@@ -171,73 +116,58 @@ public class JasminGenerator {
 
         code.append("\n.method ").append(modifier).append(methodName).append("(");
 
-        for (var i = 0; i < method.getParams().size(); i++) {
-            Element param = method.getParam(i);
+        for (Element param : method.getParams()) {
             Type type = param.getType();
             code.append(toJasminType(type));
         }
 
-        code.append(")");
-        code.append(toJasminType(method.getReturnType()));
-        code.append(NL);
+        String returnType = toJasminType(method.getReturnType());
+        code.append(")").append(returnType).append(NL);
 
-        // Add limits
         code.append(TAB).append(".limit stack 99").append(NL);
         code.append(TAB).append(".limit locals 99").append(NL);
 
-        for (var inst : method.getInstructions()) {
-            var instCode = StringLines.getLines(generators.apply(inst)).stream()
-                    .collect(Collectors.joining(NL + TAB, TAB, NL));
-            /*for (var i = 0; i < StringLines.getLines(generators.apply(inst)).size(); i++) {
-                var result = StringLines.getLines(generators.apply(inst)).get(i);
-                if (result.isEmpty())
-                    continue;
-                code.append(NL + TAB);
-                code.append(result);
-                if (i != StringLines.getLines(generators.apply(inst)).size()) // TODO: O que é que se está a passar?
-                    code.append(NL);
-            }*/
+        for (Instruction inst : method.getInstructions()) {
+            String instCode = StringLines.getLines(generators.apply(inst)).stream().collect(Collectors.joining(NL + TAB, TAB, NL));
+
             code.append(instCode);
 
-            if (inst instanceof CallInstruction callInstruction) {
-                if (!callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID))
-                    code.append(TAB + "pop" + NL);
+            if (inst instanceof CallInstruction callInstruction && !callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
+                code.append(TAB + "pop" + NL);
             }
         }
 
-        code.append(".end method\n");
+        code.append(".end method").append(NL);
 
-        // unset method
         currentMethod = null;
 
         return code.toString();
     }
 
     private String generateAssign(AssignInstruction assign) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
         // store value in the stack in destination
-        var lhs = assign.getDest();
+        Element lhs = assign.getDest();
 
         if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
 
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
-        // TODO: Hardcoded for int type, needs to be expanded
-
-        var operandCode = switch (operand.getType().getTypeOfElement()) {
+        String operandCode = switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "istore ";
-            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore "; //TODO: Class pode não estar certo
+            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore ";
             case THIS, VOID -> null;
         };
-        code.append(operandCode);
-        code.append(reg).append(NL);
+
+        code.append(operandCode).append(register).append(NL);
+
         return code.toString();
     }
 
@@ -251,26 +181,25 @@ public class JasminGenerator {
 
     private String generateOperand(Operand operand) {
         // get register
-        var reg = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        String instruction;
-        var operandType = operand.getType().getTypeOfElement();
+        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+        ElementType operandType = operand.getType().getTypeOfElement();
         if (operandType.equals(ElementType.INT32) || operandType.equals(ElementType.BOOLEAN)) {
-            instruction = "iload";
-        } else {
-            instruction = "aload";
+            return "iload " + register + NL;
         }
-        return instruction + " " + reg + NL;
+
+        return "aload " + register + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
         // load values on the left and on the right
         code.append(generators.apply(binaryOp.getLeftOperand()));
         code.append(generators.apply(binaryOp.getRightOperand()));
 
         // apply operation
-        var op = switch (binaryOp.getOperation().getOpType()) {
+        String op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd ";
             case MUL -> "imul ";
             case SUB -> "isub ";
@@ -288,137 +217,115 @@ public class JasminGenerator {
     }
 
     private String generateReturn(ReturnInstruction returnInst) {
-        var code = new StringBuilder();
+        StringBuilder code = new StringBuilder();
 
-        // TODO: Hardcoded to int return type, needs to be expanded
-        var returnCode = "return ";
         if (returnInst.hasReturnValue()) {
             code.append(generators.apply(returnInst.getOperand()));
-
-            returnCode = switch (returnInst.getReturnType().getTypeOfElement()) {
-                case INT32, BOOLEAN -> "ireturn ";
-                case ARRAYREF, OBJECTREF, CLASS, THIS, STRING -> "areturn ";
-                case VOID -> "return ";
-            };
         }
+
+        String returnCode = switch (returnInst.getReturnType().getTypeOfElement()) {
+            case INT32, BOOLEAN -> "ireturn ";
+            case ARRAYREF, OBJECTREF, CLASS, THIS, STRING -> "areturn ";
+            case VOID -> "return ";
+        };
 
         code.append(returnCode).append(NL);
         return code.toString();
     }
 
-
-    private String generateGetFieldInst(GetFieldInstruction getFieldInstruction) {
-        var code = new StringBuilder();
-        code.append("aload ");
-        code.append(getFieldInstruction.getObject().getParamId());
-        code.append(NL);
-        code.append("getfield ");
-        code.append(currentMethod.getOllirClass().getClassName());
-        code.append("/");
-        code.append(getFieldInstruction.getField().getName());
-        code.append(" ");
-        code.append(toJasminType(getFieldInstruction.getField().getType()));
-        code.append(NL);
-
-        return code.toString();
-    }
-
-    private String generatePutFieldInst(PutFieldInstruction putFieldInstruction) {
-        var code = new StringBuilder();
-        code.append("aload ");
-        code.append(putFieldInstruction.getObject().getParamId());
-        code.append(NL);
-        code.append(generators.apply(putFieldInstruction.getValue()));
-        code.append("putfield ");
-        code.append(currentMethod.getOllirClass().getClassName());
-        code.append("/");
-        code.append(putFieldInstruction.getField().getName());
-        code.append(" ");
-        code.append(toJasminType(putFieldInstruction.getField().getType()));
-        code.append(NL);
-
-        return code.toString();
-    }
-
     private String generateField(Field field) {
-        var code = new StringBuilder();
-        var modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT ?
+        StringBuilder code = new StringBuilder();
+        String modifier = field.getFieldAccessModifier() != AccessModifier.DEFAULT ?
                 field.getFieldAccessModifier().name().toLowerCase() + " " :
                 "private ";
 
-        var fieldName = field.getFieldName();
+        String fieldName = field.getFieldName();
         code.append("\n.field ").append(modifier).append(fieldName).append(" ");
         code.append(toJasminType(field.getFieldType())).append(NL);
 
         return code.toString();
     }
 
-    private String generateCallInst(CallInstruction callInstruction) {
+    private String generateGetField(GetFieldInstruction getFieldInstruction) {
+        Operand field = getFieldInstruction.getField();
+        int register = field.getParamId();
+        currentMethod.getVarTable().get(field.getName()).setVirtualReg(register);
+
+        StringBuilder code = new StringBuilder();
+        code.append("aload ").append(register).append(NL);
+
+        code.append("getfield ");
+        code.append(currentMethod.getOllirClass().getClassName()).append("/").append(field.getName()).append(" ");
+        code.append(toJasminType(field.getType())).append(NL);
+
+        return code.toString();
+    }
+
+    private String generatePutField(PutFieldInstruction putFieldInstruction) {
+        Operand field = putFieldInstruction.getField();
+        int register = field.getParamId();
+        
+        StringBuilder code = new StringBuilder();
+        code.append("aload ").append(register).append(NL);
+        code.append(generators.apply(putFieldInstruction.getValue()));
+        code.append("putfield ");
+        code.append(currentMethod.getOllirClass().getClassName()).append("/").append(field.getName()).append(" ");
+        code.append(toJasminType(field.getType())).append(NL);
+
+        return code.toString();
+    }
+
+    private String generateCall(CallInstruction callInstruction) {
         var code = new StringBuilder();
         var instType = callInstruction.getInvocationType();
         //var className = ollirResult.getOllirClass().getClassName(); // TODO
-        String callerString;
-        String callerName;
-        String callerType;
-        String methodName;
         ArrayList<String> argsType;
         String returnType;
         String invocationCode;
+
+        Operand caller = (Operand) (callInstruction.getCaller());
+        String callerName = caller.getName();
+        String callerType = ((ClassType) caller.getType()).getName();
+
         if (callInstruction.hasChildren())
             switch (instType) {
                 case invokevirtual:
-                    callerString = callInstruction.getCaller().toString();
+                    String virtualMethod = ((LiteralElement) callInstruction.getMethodName()).getLiteral();
+                    String virtualMethodName = virtualMethod.substring(1, virtualMethod.length() - 1);
 
-                    callerType = getCallerType(callerString);
-                    methodName = getInvokeMethod(callInstruction.getMethodName().toString());
                     argsType = getArgsCallInstruction(callInstruction);
                     returnType = toJasminType(callInstruction.getReturnType());
 
-                    invocationCode = getVirtualCall(callerType, methodName, argsType, returnType);
+                    invocationCode = getCall("invokevirtual", callerType, virtualMethodName, argsType, returnType);
                     code.append(generators.apply(callInstruction.getCaller()));
                     code.append(getArgsComputationCallInstruction(callInstruction));
                     code.append(invocationCode);
-
-                    code.append(NL);
-                    break;
-                case invokeinterface:
-                    break;
-                case invokespecial:
                     break;
                 case invokestatic:
-                    callerString = callInstruction.getCaller().toString();
+                    String staticMethod = ((LiteralElement) callInstruction.getMethodName()).getLiteral();
+                    String staticMethodName = staticMethod.substring(1, staticMethod.length() - 1);
 
-                    callerType = getCallerType(callerString); // TODO: estamos a passar o callerName porque o tipo está errado
-                    callerName = getCallerName(callerString);
-                    methodName = getInvokeMethod(callInstruction.getMethodName().toString());
                     argsType = getArgsCallInstruction(callInstruction);
                     returnType = toJasminType(callInstruction.getReturnType());
 
-                    invocationCode = getStaticCall(callerName, methodName, argsType, returnType);
+                    invocationCode = getCall("invokestatic", callerName, staticMethodName, argsType, returnType);
                     code.append(getArgsComputationCallInstruction(callInstruction));
                     code.append(invocationCode);
-
-                    code.append(NL);
                     break;
                 case NEW:
-
-                    callerType = getCallerType(callInstruction.getCaller().toString());
                     code.append("new ");
                     code.append(callerType);
                     code.append(NL);
                     code.append("dup");
                     code.append(NL);
                     code.append(getArgsComputationCallInstruction(callInstruction));
-                    invocationCode = getConstructorCall(callerType, getArgsCallInstruction(callInstruction));
+                    invocationCode = getCall("invokespecial", callerType, "<init>", getArgsCallInstruction(callInstruction), "V");
                     code.append(invocationCode);
-                    code.append(NL);
-                    break;
-
-                case arraylength:
-                    break;
-                case ldc:
                     break;
             }
+
+        code.append(NL);
+
         return code.toString();
     }
 
@@ -451,6 +358,18 @@ public class JasminGenerator {
         };
     }
 
+    private String getCall(String call, String className, String methodName, List<String> argsType, String returnType) {
+        StringBuilder code = new StringBuilder();
+        code.append(call).append(" ");
+        code.append(className).append(".");
+        code.append(methodName).append("(");
+        for (String argType : argsType) {
+            code.append(argType);
+        }
+        code.append(")").append(returnType);
+        return code.toString();
+    }
+
     private String getClassName(ClassType type) {
         String shortName = type.getName();
 
@@ -466,62 +385,5 @@ public class JasminGenerator {
         fullName.append(";");
 
         return fullName.toString();
-    }
-
-    private String getCallerName(String caller) {
-        String callerName;
-
-        // Define the pattern to match "Operand: name(Type)"
-        String pattern = "Operand: (\\w+)\\.";
-
-        // Compile the pattern
-        Pattern p = Pattern.compile(pattern);
-
-        // Match the pattern against the input string
-        Matcher m = p.matcher(caller);
-
-        if (m.find()) {
-            callerName = m.group(1);
-        } else {
-            callerName = "Not Found";
-        }
-        return callerName;
-
-    }
-
-    private String getCallerType(String caller) {
-        String callerType;
-
-        String pattern = "Operand: \\w+\\.\\w+\\((\\w+)\\)";
-        Pattern p = Pattern.compile(pattern);
-
-        Matcher m = p.matcher(caller);
-
-        if (m.find()) {
-            callerType = m.group(1);
-        } else {
-            callerType = "Not Found";
-        }
-        return callerType;
-    }
-
-    private String getInvokeMethod(String method) {
-        String methodName;
-
-        // Define the pattern to match "Operand: name(Type)"
-        String pattern = "\"(\\w+)\"";
-
-        // Compile the pattern
-        Pattern p = Pattern.compile(pattern);
-
-        // Match the pattern against the input string
-        Matcher m = p.matcher(method);
-
-        if (m.find()) {
-            methodName = m.group(1);
-        } else {
-            methodName = "Not Found";
-        }
-        return methodName;
     }
 }

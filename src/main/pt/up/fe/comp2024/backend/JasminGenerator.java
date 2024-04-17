@@ -200,14 +200,14 @@ public class JasminGenerator {
 
         // apply operation
         String op = switch (binaryOp.getOperation().getOpType()) {
-            case ADD -> "iadd ";
-            case MUL -> "imul ";
-            case SUB -> "isub ";
-            case DIV -> "idiv ";
-            case AND, ANDB -> "iand ";
-            case OR, ORB -> "ior ";
-            case EQ, NEQ, LTE, GTE -> "icmp ";
-            case NOT, NOTB -> "ineg ";
+            case ADD -> "iadd";
+            case MUL -> "imul";
+            case SUB -> "isub";
+            case DIV -> "idiv";
+            case AND, ANDB -> "iand";
+            case OR, ORB -> "ior";
+            case EQ, NEQ, LTE, GTE -> "icmp";
+            case NOT, NOTB -> "ineg";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
 
@@ -224,9 +224,9 @@ public class JasminGenerator {
         }
 
         String returnCode = switch (returnInst.getReturnType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "ireturn ";
-            case ARRAYREF, OBJECTREF, CLASS, THIS, STRING -> "areturn ";
-            case VOID -> "return ";
+            case INT32, BOOLEAN -> "ireturn";
+            case ARRAYREF, OBJECTREF, CLASS, THIS, STRING -> "areturn";
+            case VOID -> "return";
         };
 
         code.append(returnCode).append(NL);
@@ -281,7 +281,9 @@ public class JasminGenerator {
 
         Operand caller = (Operand) callInstruction.getCaller();
         String callerName = caller.getName();
-        String callerType = ((ClassType) caller.getType()).getName();
+
+        ClassType callerClass = (ClassType) caller.getType();
+        String callerType = getFullName(callerClass.getName());
 
         CallType invocationType = callInstruction.getInvocationType();
         ArrayList<String> argumentsType = new ArrayList<>();
@@ -313,7 +315,7 @@ public class JasminGenerator {
 
             case NEW:
                 code.append("new ").append(callerType).append(NL);
-                code.append("dup").append(NL);
+                code.append("dup");
                 break;
         }
 
@@ -342,27 +344,20 @@ public class JasminGenerator {
             case INT32 -> "I";
             case BOOLEAN -> "Z";
             case ARRAYREF -> "[Ljava/lang/String;"; // TODO: CP3
-            case OBJECTREF, CLASS -> getClassName((ClassType) type);
+            case OBJECTREF, CLASS -> "L" + getFullName(((ClassType) type).getName()) + ";";
             case THIS -> null;
             case STRING -> "Ljava/lang/String;";
             case VOID -> "V";
         };
     }
 
-    private String getClassName(ClassType type) {
-        String shortName = type.getName();
-
-        StringBuilder fullName = new StringBuilder("L");
-
+    private String getFullName(String shortName) {
         for (String importName : ollirResult.getOllirClass().getImports()) {
             if (importName.endsWith(shortName)) {
-                String path = importName.replace(".", "/");
-                fullName.append(path);
+                return importName.replace(".", "/");
             }
         }
 
-        fullName.append(";");
-
-        return fullName.toString();
+        return shortName;
     }
 }

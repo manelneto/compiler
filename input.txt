@@ -1,4 +1,15 @@
+import java.util.ArrayList;
+
 class Test {
+    public ArrayList f(ArrayList l) {
+        l = new ArrayList();
+        return l;
+    }
+
+    public int g(int i) {
+        return i;
+    }
+
     public static void main(String[] args) {
     }
 }

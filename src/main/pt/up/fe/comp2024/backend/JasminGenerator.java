@@ -264,7 +264,7 @@ public class JasminGenerator {
     private String generatePutField(PutFieldInstruction putFieldInstruction) {
         Operand field = putFieldInstruction.getField();
         int register = field.getParamId();
-        
+
         StringBuilder code = new StringBuilder();
         code.append("aload ").append(register).append(NL);
         code.append(generators.apply(putFieldInstruction.getValue()));
@@ -276,98 +276,77 @@ public class JasminGenerator {
     }
 
     private String generateCall(CallInstruction callInstruction) {
-        var code = new StringBuilder();
-        var instType = callInstruction.getInvocationType();
-        //var className = ollirResult.getOllirClass().getClassName(); // TODO
-        ArrayList<String> argsType;
-        String returnType;
-        String invocationCode;
+        StringBuilder code = new StringBuilder();
+        String invocationCode = "";
 
-        Operand caller = (Operand) (callInstruction.getCaller());
+        Operand caller = (Operand) callInstruction.getCaller();
         String callerName = caller.getName();
         String callerType = ((ClassType) caller.getType()).getName();
 
-        if (callInstruction.hasChildren())
-            switch (instType) {
-                case invokevirtual:
-                    String virtualMethod = ((LiteralElement) callInstruction.getMethodName()).getLiteral();
-                    String virtualMethodName = virtualMethod.substring(1, virtualMethod.length() - 1);
+        CallType invocationType = callInstruction.getInvocationType();
+        ArrayList<String> argumentsType = new ArrayList<>();
+        for (Element argument : callInstruction.getArguments()) {
+            argumentsType.add(toJasminType(argument.getType()));
+        }
 
-                    argsType = getArgsCallInstruction(callInstruction);
-                    returnType = toJasminType(callInstruction.getReturnType());
+        String returnType = toJasminType(callInstruction.getReturnType());
 
-                    invocationCode = getCall("invokevirtual", callerType, virtualMethodName, argsType, returnType);
-                    code.append(generators.apply(callInstruction.getCaller()));
-                    code.append(getArgsComputationCallInstruction(callInstruction));
-                    code.append(invocationCode);
-                    break;
-                case invokestatic:
-                    String staticMethod = ((LiteralElement) callInstruction.getMethodName()).getLiteral();
-                    String staticMethodName = staticMethod.substring(1, staticMethod.length() - 1);
+        switch (invocationType) {
+            case invokevirtual:
+                String virtualMethod = ((LiteralElement) callInstruction.getMethodName()).getLiteral();
+                String virtualMethodName = virtualMethod.substring(1, virtualMethod.length() - 1);
 
-                    argsType = getArgsCallInstruction(callInstruction);
-                    returnType = toJasminType(callInstruction.getReturnType());
+                invocationCode = getCall(invocationType.toString(), callerType, virtualMethodName, argumentsType, returnType);
+                code.append(generators.apply(callInstruction.getCaller()));
+                break;
 
-                    invocationCode = getCall("invokestatic", callerName, staticMethodName, argsType, returnType);
-                    code.append(getArgsComputationCallInstruction(callInstruction));
-                    code.append(invocationCode);
-                    break;
-                case NEW:
-                    code.append("new ");
-                    code.append(callerType);
-                    code.append(NL);
-                    code.append("dup");
-                    code.append(NL);
-                    code.append(getArgsComputationCallInstruction(callInstruction));
-                    invocationCode = getCall("invokespecial", callerType, "<init>", getArgsCallInstruction(callInstruction), "V");
-                    code.append(invocationCode);
-                    break;
-            }
+            case invokespecial:
+                invocationCode = getCall(invocationType.toString(), callerType, "<init>", argumentsType, "V");
+                break;
 
-        code.append(NL);
+            case invokestatic:
+                String staticMethod = ((LiteralElement) callInstruction.getMethodName()).getLiteral();
+                String staticMethodName = staticMethod.substring(1, staticMethod.length() - 1);
+
+                invocationCode = getCall(invocationType.toString(), callerName, staticMethodName, argumentsType, returnType);
+                break;
+
+            case NEW:
+                code.append("new ").append(callerType).append(NL);
+                code.append("dup").append(NL);
+                break;
+        }
+
+        for (Element argument : callInstruction.getArguments()) {
+            code.append(generators.apply(argument));
+        }
+        code.append(invocationCode).append(NL);
 
         return code.toString();
     }
 
-    private ArrayList<String> getArgsCallInstruction(CallInstruction callInstruction) {
-        var argsType = new ArrayList<String>();
-        for (var arg : callInstruction.getArguments()) {
-            argsType.add(toJasminType(arg.getType()));
+    private String getCall(String invocationType, String className, String methodName, List<String> argumentsType, String returnType) {
+        StringBuilder code = new StringBuilder();
+        code.append(invocationType).append(" ");
+        code.append(className).append(".");
+        code.append(methodName).append("(");
+        for (String argumentType : argumentsType) {
+            code.append(argumentType);
         }
-        return argsType;
-    }
-
-    private String getArgsComputationCallInstruction(CallInstruction callInstruction) {
-        var code = new StringBuilder();
-        for (var arg : callInstruction.getArguments()) {
-            code.append(generators.apply(arg));
-        }
+        code.append(")").append(returnType);
         return code.toString();
     }
-
 
     private String toJasminType(Type type) {
         return switch (type.getTypeOfElement()) {
             case INT32 -> "I";
             case BOOLEAN -> "Z";
-            case ARRAYREF -> "[Ljava/lang/String;";
+            case ARRAYREF -> "[Ljava/lang/String;"; // TODO: CP3
             case OBJECTREF, CLASS -> getClassName((ClassType) type);
             case THIS -> null;
             case STRING -> "Ljava/lang/String;";
             case VOID -> "V";
         };
-    }
-
-    private String getCall(String call, String className, String methodName, List<String> argsType, String returnType) {
-        StringBuilder code = new StringBuilder();
-        code.append(call).append(" ");
-        code.append(className).append(".");
-        code.append(methodName).append("(");
-        for (String argType : argsType) {
-            code.append(argType);
-        }
-        code.append(")").append(returnType);
-        return code.toString();
     }
 
     private String getClassName(ClassType type) {

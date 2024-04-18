@@ -252,7 +252,6 @@ public class JasminGenerator {
     private String generateGetField(GetFieldInstruction getFieldInstruction) {
         Operand field = getFieldInstruction.getField();
         int register = field.getParamId();
-        currentMethod.getVarTable().get(field.getName()).setVirtualReg(register);
 
         StringBuilder code = new StringBuilder();
         code.append("aload ").append(register).append(NL);

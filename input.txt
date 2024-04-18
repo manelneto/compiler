@@ -1,12 +1,7 @@
-import Imported;
-import java.util.Scanner;
-
-class Sample extends Scanner {
-    public Scanner f(Scanner s) {
-        return s;
-    }
-
-    public Imported g(Imported i) {
+class Test {
+    int i;
+    public int f() {
+        i = 1;
         return i;
     }
 }

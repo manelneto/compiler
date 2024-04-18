@@ -1,7 +1,7 @@
+import a.b.c.D;
+
 class Test {
-    int i;
     public int f() {
-        i = 1;
-        return i;
+        return D.foo();
     }
 }

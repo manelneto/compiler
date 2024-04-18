@@ -282,7 +282,7 @@ public class JasminGenerator {
         String invocationCode = "";
 
         Operand caller = (Operand) callInstruction.getCaller();
-        String callerName = caller.getName();
+        String callerName = getFullName(caller.getName());
 
         ClassType callerClass = (ClassType) caller.getType();
         String callerType = getFullName(callerClass.getName());

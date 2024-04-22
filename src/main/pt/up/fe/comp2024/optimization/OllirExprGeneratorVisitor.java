@@ -29,7 +29,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     @Override
     protected void buildVisitor() {
         addVisit(PAREN_EXPR, this::visitParenExpr);
-        //addVisit(ARRAY_ACCESS, this::visitArrayAccess);
+        addVisit(ARRAY_ACCESS, this::visitArrayAccess);
         addVisit(FUNCTION_CALL, this::visitFunctionCall);
         //addVisit(LENGTH, this::visitLength);
         //addVisit(UNARY_EXPR, this::visitUnaryExpr);
@@ -47,6 +47,27 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private OllirExprResult visitParenExpr(JmmNode parenExpr, Void unused) {
         JmmNode expr = parenExpr.getChild(0);
         return visit(expr);
+    }
+
+    private OllirExprResult visitArrayAccess(JmmNode arrayAccess, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        String intType = OptUtils.toOllirType(typeUtils.getIntType());
+
+        JmmNode array = arrayAccess.getChild(0); // TODO: ID or FunctionCall?
+        JmmNode index = arrayAccess.getChild(1);
+
+        OllirExprResult result = visit(index);
+
+        code.append(OptUtils.getTemp()).append(intType);
+
+        computation.append(result.getComputation());
+        computation.append(code).append(SPACE).append(ASSIGN).append(intType);
+        computation.append(SPACE).append(array.get("name")).append(OptUtils.toOllirType(typeUtils.getIntArrayType()));
+        computation.append("[").append(result.getCode()).append("]").append(intType).append(END_STMT);
+
+        return new OllirExprResult(code.toString(), computation.toString());
     }
 
     private OllirExprResult visitFunctionCall(JmmNode functionCall, Void unused) {

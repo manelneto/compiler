@@ -1,7 +1,7 @@
 class myClass {
     public int[] sum(int[] A){
-        int[] b;
-        b = new int[1 + 1];
+        int b;
+        b = A[1+1];
         return A;
     }
 }

@@ -34,7 +34,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         //addVisit(LENGTH, this::visitLength);
         //addVisit(UNARY_EXPR, this::visitUnaryExpr);
         addVisit(NEW_OBJECT, this::visitNewObject);
-        //addVisit(NEW_ARRAY, this::visitNewArray);
+        addVisit(NEW_ARRAY, this::visitNewArray);
         addVisit(BINARY_EXPR, this::visitBinaryExpr);
         //addVisit(ARRAY, this::visitArray);
         addVisit(INTEGER_LITERAL, this::visitIntegerLiteral);
@@ -123,6 +123,27 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         StringBuilder code = new StringBuilder(temp);
         code.append(ollirType);
+
+        return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult visitNewArray(JmmNode newArray, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+
+        String arrayType = OptUtils.toOllirType(typeUtils.getIntArrayType());
+
+        JmmNode expr = newArray.getChild(0);
+        OllirExprResult result = visit(expr);
+
+        code.append(OptUtils.getTemp());
+        code.append(arrayType);
+
+        computation.append(result.getComputation());
+        computation.append(code).append(SPACE);
+        computation.append(ASSIGN).append(arrayType).append(SPACE);
+        computation.append("new(array, ").append(result.getCode()).append(")");
+        computation.append(arrayType).append(END_STMT);
 
         return new OllirExprResult(code.toString(), computation.toString());
     }

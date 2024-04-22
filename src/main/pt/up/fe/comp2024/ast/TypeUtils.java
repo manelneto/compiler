@@ -38,6 +38,18 @@ public class TypeUtils {
         return BOOLEAN_TYPE_NAME;
     }
 
+    public Type getBooleanType() {
+        return new Type(BOOLEAN_TYPE_NAME, false);
+    }
+
+    public Type getIntType() {
+        return new Type(INT_TYPE_NAME, false);
+    }
+
+    public Type getIntArrayType() {
+        return new Type(INT_TYPE_NAME, true);
+    }
+
     public Type getVoidType() {
         return new Type(VOID_TYPE_NAME, false);
     }

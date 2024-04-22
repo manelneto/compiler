@@ -234,8 +234,7 @@ public class TypeUtils {
     }
 
     public boolean isIndexable(Type indexType) {
-        // TODO
-        return indexType.equals(getVoidType()) || indexType.equals(new Type(INT_TYPE_NAME, false));
+        return indexType.equals(new Type(INT_TYPE_NAME, false));
     }
 
     public boolean areTypesAssignable(Type lhsType, Type rhsType) {

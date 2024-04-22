@@ -2,6 +2,7 @@ import a.b.c.D;
 
 class Test {
     public int f() {
-        return D.foo();
+        int[] a;
+        return a[D.foo()];
     }
 }

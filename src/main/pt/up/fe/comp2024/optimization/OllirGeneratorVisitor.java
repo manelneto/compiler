@@ -351,7 +351,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append(indexExprResult.getComputation());
         code.append(valueExprResult.getComputation());
         code.append(arrayName).append("[").append(indexExprResult.getCode()).append("].i32 ") // TODO: o tipo está hardcoded para int
-                .append(ASSIGN).append(".i32    ").append(valueExprResult.getCode()).append(END_STMT);
+                .append(ASSIGN).append(".i32 ").append(valueExprResult.getCode()).append(END_STMT);
 
         return code.toString();
     }

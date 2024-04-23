@@ -2,7 +2,8 @@ class myClass {
 
     public int sum(){
         int[] a;
-        a[2+2] = 1+1;
+        int b;
+        b = a.length;
         return 0;
     }
 }

@@ -1,9 +1,8 @@
 class myClass {
 
     public int sum(){
-        int[] a;
-        int b;
-        b = a.length;
+        boolean b;
+        b = ! true;
         return 0;
     }
 }

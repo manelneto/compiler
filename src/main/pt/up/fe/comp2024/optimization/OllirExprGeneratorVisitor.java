@@ -32,7 +32,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         addVisit(ARRAY_ACCESS, this::visitArrayAccess);
         addVisit(FUNCTION_CALL, this::visitFunctionCall);
         addVisit(LENGTH, this::visitLength);
-        //addVisit(UNARY_EXPR, this::visitUnaryExpr);
+        addVisit(UNARY_EXPR, this::visitUnaryExpr);
         addVisit(NEW_OBJECT, this::visitNewObject);
         addVisit(NEW_ARRAY, this::visitNewArray);
         addVisit(BINARY_EXPR, this::visitBinaryExpr);
@@ -185,6 +185,23 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         computation.append(code);
         computation.append(SPACE).append(ASSIGN).append(intType)
             .append(" arraylength(").append(arrayName).append(arrayType).append(")").append(intType).append(END_STMT);
+
+        return new OllirExprResult(code.toString(), computation.toString());
+    }
+
+    private OllirExprResult visitUnaryExpr(JmmNode unaryExpr, Void unused) {
+        StringBuilder code = new StringBuilder();
+        StringBuilder computation = new StringBuilder();
+        String booleanType = OptUtils.toOllirType(typeUtils.getBooleanType());
+        JmmNode expr = unaryExpr.getChild(0);
+        OllirExprResult result = visit(expr);
+
+        code.append(OptUtils.getTemp());
+        code.append(booleanType);
+        computation.append(result.getComputation());
+        computation.append(code).append(SPACE).append(ASSIGN).append(booleanType)
+                .append(" !").append(booleanType).append(SPACE).append(result.getCode()).append(END_STMT);
+
 
         return new OllirExprResult(code.toString(), computation.toString());
     }

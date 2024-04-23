@@ -2,12 +2,12 @@ class myClass {
 
     public int sum(){
         int a;
-        while (true) {
+        if (true) {
            a = 1;
         }
-        while (true) {
-           a = 1;
+        else {
+           a = 2;
         }
-        return a;
+        return 0;
     }
 }

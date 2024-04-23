@@ -8,11 +8,17 @@ import static pt.up.fe.comp2024.ast.Kind.TYPE;
 public class OptUtils {
     private static int tempNumber = -1;
     private static int whileNumber = -1;
+    private static int ifNumber = -1;
 
     public static String getWhileNumber() {
         whileNumber += 1;
         return String.valueOf(whileNumber);
     }
+    public static String getIfNumber() {
+        ifNumber += 1;
+        return String.valueOf(ifNumber);
+    }
+
 
     public static String getTemp() {
 

@@ -48,7 +48,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(ASSIGN_STMT, this::visitAssignStmt);
         addVisit(SIMPLE_STMT, this::visitSimpleStmt);
         addVisit(WHILE_STMT, this::visitWhileStmt);
-        //addVisit(IF_ELSE_STMT, this::visitIfElseStmt);
+        addVisit(IF_ELSE_STMT, this::visitIfElseStmt);
         addVisit(STMT_BLOCK, this::visitStmtBlock);
 
 
@@ -307,6 +307,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         OllirExprResult exprResult = exprVisitor.visit(node.getChild(0));
         String stmtResult = visit(node.getChild(1));
         String whileNumber = OptUtils.getWhileNumber();
+
         code.append("goto while_cond_").append(whileNumber).append(END_STMT);
         code.append("while_body_").append(whileNumber).append(":").append("\n");
         code.append(stmtResult);
@@ -318,7 +319,25 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
+    private String visitIfElseStmt(JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        OllirExprResult exprResult = exprVisitor.visit(node.getChild(0));
+        String thenStmtResult = visit(node.getChild(1));
+        String elseStmtResult = visit(node.getChild(2));
+        String ifNumber = OptUtils.getIfNumber();
 
+        code.append(exprResult.getComputation());
+        code.append("if(").append(exprResult.getCode()).append(") goto if_then_").append(ifNumber).append(END_STMT);
+
+        code.append(elseStmtResult);
+        code.append("goto if_end_").append(ifNumber).append(END_STMT);
+
+        code.append("if_then_").append(ifNumber).append(":\n");
+        code.append(thenStmtResult);
+        code.append("if_end_").append(ifNumber).append(":\n");
+
+        return code.toString();
+    }
 
 
     /**

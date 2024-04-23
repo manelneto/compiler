@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Ollir;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
@@ -50,6 +51,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         addVisit(WHILE_STMT, this::visitWhileStmt);
         addVisit(IF_ELSE_STMT, this::visitIfElseStmt);
         addVisit(STMT_BLOCK, this::visitStmtBlock);
+        addVisit(ARRAY_ASSIGN_STMT, this::visitArrayAssignStmt);
 
 
         setDefaultVisit(this::defaultVisit);
@@ -335,6 +337,21 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         code.append("if_then_").append(ifNumber).append(":\n");
         code.append(thenStmtResult);
         code.append("if_end_").append(ifNumber).append(":\n");
+
+        return code.toString();
+    }
+
+    private String visitArrayAssignStmt (JmmNode node, Void unused) {
+        StringBuilder code = new StringBuilder();
+        String arrayName = node.get("name");
+
+        OllirExprResult indexExprResult = exprVisitor.visit(node.getChild(0));
+        OllirExprResult valueExprResult = exprVisitor.visit(node.getChild(1));
+
+        code.append(indexExprResult.getComputation());
+        code.append(valueExprResult.getComputation());
+        code.append(arrayName).append("[").append(indexExprResult.getCode()).append("].i32 ") // TODO: o tipo está hardcoded para int
+                .append(ASSIGN).append(".i32    ").append(valueExprResult.getCode()).append(END_STMT);
 
         return code.toString();
     }

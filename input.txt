@@ -1,13 +1,8 @@
 class myClass {
 
     public int sum(){
-        int a;
-        if (true) {
-           a = 1;
-        }
-        else {
-           a = 2;
-        }
+        int[] a;
+        a[2+2] = 1+1;
         return 0;
     }
 }

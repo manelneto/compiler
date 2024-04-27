@@ -1,8 +1,14 @@
 class myClass {
-
-    public int sum(){
-        boolean b;
-        b = ! true;
-        return 0;
+    public static void main(String[] args) {
+    }
+    public boolean sum(){
+        int a;
+        if (true && false) {
+            a = 1;
+        }
+        else {
+            a = 2;
+        }
+        return true;
     }
 }

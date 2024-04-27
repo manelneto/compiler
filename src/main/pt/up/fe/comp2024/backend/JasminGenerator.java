@@ -49,12 +49,19 @@ public class JasminGenerator {
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
+        generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
         generators.put(Field.class, this::generateField);
         generators.put(GetFieldInstruction.class, this::generateGetField);
         generators.put(PutFieldInstruction.class, this::generatePutField);
         generators.put(CallInstruction.class, this::generateCall);
+        //generators.put(GotoInstruction.class, this::generateGoto);
+        //generators.put(CondBranchInstruction.class, this::generateCondBranch);
+        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
+        //generators.put(OpCondInstruction.class, this::generateOpCond);
+        //generators.put(ArrayOperand.class, this::generateArrayOp);
     }
+
 
     public List<Report> getReports() {
         return reports;
@@ -219,6 +226,15 @@ public class JasminGenerator {
         return code.toString();
     }
 
+    private String generateUnaryOp(UnaryOpInstruction unaryOp) {
+        StringBuilder code = new StringBuilder();
+
+        code.append(generators.apply(unaryOp.getOperand()));
+        code.append("iconst_1").append(NL);
+        code.append("ixor").append(NL);                 // TODO: confirmar se xor com 1 é a negação
+
+        return code.toString();
+    }
     private String generateReturn(ReturnInstruction returnInst) {
         StringBuilder code = new StringBuilder();
 

@@ -173,10 +173,27 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
+        String intType = OptUtils.toOllirType(typeUtils.getIntType());
         String arrayType = OptUtils.toOllirType(typeUtils.getIntArrayType());
+        String tempArrayName = OptUtils.getTemp();
+        int arraySize = array.getNumChildren();
 
-        code.append(OptUtils.getTemp());
+        code.append(tempArrayName);
         code.append(arrayType);
+
+        computation.append(code).append(SPACE).append(ASSIGN).append(arrayType).append(SPACE);
+        computation.append("new(array, ").append(arraySize).append(intType).append(")").append(arrayType).append(END_STMT);
+
+        for (int i = 0; i < array.getChildren().size(); i++) {
+            JmmNode elem = array.getChild(i);
+            OllirExprResult result = visit(elem);
+
+            computation.append(result.getComputation());
+            computation.append(tempArrayName).append("[");
+            computation.append(i).append(intType).append("]").append(intType);
+            computation.append(SPACE).append(ASSIGN).append(intType).append(SPACE);
+            computation.append(result.getCode()).append(END_STMT);
+        }
         return new OllirExprResult(code.toString(), computation.toString());
     }
 

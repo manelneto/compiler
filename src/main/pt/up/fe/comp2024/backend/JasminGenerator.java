@@ -55,10 +55,8 @@ public class JasminGenerator {
         generators.put(GetFieldInstruction.class, this::generateGetField);
         generators.put(PutFieldInstruction.class, this::generatePutField);
         generators.put(CallInstruction.class, this::generateCall);
-        //generators.put(GotoInstruction.class, this::generateGoto);
-        //generators.put(CondBranchInstruction.class, this::generateCondBranch);
-        //generators.put(SingleOpCondInstruction.class, this::generateSingleOpCond);
-        //generators.put(OpCondInstruction.class, this::generateOpCond);
+        generators.put(GotoInstruction.class, this::generateGoto);
+        generators.put(CondBranchInstruction.class, this::generateCondBranch);
         //generators.put(ArrayOperand.class, this::generateArrayOp);
     }
 
@@ -138,6 +136,10 @@ public class JasminGenerator {
         code.append(TAB).append(".limit locals 99").append(NL);
 
         for (Instruction inst : method.getInstructions()) {
+            for (String label : method.getLabels(inst)) {
+                code.append(label).append(":").append(NL);
+            }
+
             String instCode = StringLines.getLines(generators.apply(inst)).stream().collect(Collectors.joining(NL + TAB, TAB, NL));
 
             code.append(instCode);
@@ -230,11 +232,12 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
 
         code.append(generators.apply(unaryOp.getOperand()));
-        code.append("iconst_1").append(NL);
-        code.append("ixor").append(NL);                 // TODO: confirmar se xor com 1 é a negação
+        code.append("iconst_m1").append(NL);
+        code.append("ixor").append(NL);
 
         return code.toString();
     }
+
     private String generateReturn(ReturnInstruction returnInst) {
         StringBuilder code = new StringBuilder();
 
@@ -341,6 +344,23 @@ public class JasminGenerator {
             code.append(generators.apply(argument));
         }
         code.append(invocationCode).append(NL);
+
+        return code.toString();
+    }
+
+    private String generateGoto(GotoInstruction gotoInstruction) {
+        return "goto " + gotoInstruction.getLabel();
+    }
+
+    private String generateCondBranch(CondBranchInstruction condBranchInstruction) {
+        StringBuilder code = new StringBuilder();
+
+        if (condBranchInstruction instanceof SingleOpCondInstruction singleOpCondInstruction) {
+            code.append(generators.apply(singleOpCondInstruction.getCondition()));
+            code.append("ifne ").append(condBranchInstruction.getLabel());
+        } else {
+
+        }
 
         return code.toString();
     }

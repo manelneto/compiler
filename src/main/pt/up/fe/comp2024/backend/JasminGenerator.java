@@ -172,9 +172,11 @@ public class JasminGenerator {
         // get register
         int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
+        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
+
         String operandCode = switch (operand.getType().getTypeOfElement()) {
-            case INT32, BOOLEAN -> "istore ";
-            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore ";
+            case INT32, BOOLEAN -> "istore" + underscoreOrSpace;
+            case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore" + underscoreOrSpace;
             case THIS, VOID -> null;
         };
 
@@ -207,15 +209,16 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        // get register
         int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
         ElementType operandType = operand.getType().getTypeOfElement();
         if (operandType.equals(ElementType.INT32) || operandType.equals(ElementType.BOOLEAN)) {
-            return "iload " + register + NL;
+            return "iload" + underscoreOrSpace + register + NL;
         }
 
-        return "aload " + register + NL;
+        return "aload" + underscoreOrSpace + register + NL;
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {

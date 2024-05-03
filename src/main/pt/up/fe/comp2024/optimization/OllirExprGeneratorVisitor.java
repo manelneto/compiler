@@ -311,11 +311,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
      * Default visitor. Visits every child node and return an empty result.
      */
     private OllirExprResult defaultVisit(JmmNode node, Void unused) {
-
         for (var child : node.getChildren()) {
             visit(child);
         }
-
         return OllirExprResult.EMPTY;
     }
 }

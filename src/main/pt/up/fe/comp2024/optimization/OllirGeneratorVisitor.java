@@ -1,6 +1,5 @@
 package pt.up.fe.comp2024.optimization;
 
-import org.specs.comp.ollir.Ollir;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
@@ -161,6 +160,12 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         if (isVoid) {
             code.append("static ");
+        }
+
+        List<JmmNode> params = node.getChildren(PARAM);
+        int paramsNumber = params.size();
+        if (paramsNumber > 0 && params.get(paramsNumber - 1).getChild(0).getObject("isEllipsis", Boolean.class)) {
+            code.append("varargs ");
         }
 
         // name
@@ -341,7 +346,7 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         return code.toString();
     }
 
-    private String visitArrayAssignStmt (JmmNode node, Void unused) {
+    private String visitArrayAssignStmt(JmmNode node, Void unused) {
         StringBuilder code = new StringBuilder();
         String arrayName = node.get("name");
 

@@ -49,6 +49,7 @@ public class Methods extends AnalysisVisitor {
         var children = functionCall.getChildren();
 
         if (lastParam.getType().getObject("isEllipsis", Boolean.class)) { // com varargs
+            functionCall.putObject("hasVarargs", true);
             var lastChild = children.get(children.size() - 1);
             if (lastChild.getKind().equals(Kind.ARRAY.toString()) || (lastChild.hasAttribute("isArray") && lastChild.getObject("isArray", Boolean.class))) {
                 if (args.size() == children.size() - 1) {
@@ -77,6 +78,7 @@ public class Methods extends AnalysisVisitor {
                 return null;
             }
         } else { // sem varargs
+            functionCall.putObject("hasVarargs", false);
             if (args.size() == children.size() - 1) {
                 for (int i = 1; i < children.size(); i++) {
                     if (!typeUtils.getExprType(children.get(i)).equals(args.get(i - 1).getType())) {

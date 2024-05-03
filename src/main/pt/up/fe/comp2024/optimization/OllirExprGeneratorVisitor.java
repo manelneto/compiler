@@ -16,9 +16,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     private static final String SPACE = " ";
     private static final String ASSIGN = ":=";
     private final String END_STMT = ";\n";
+    private final SymbolTable table;
     private final TypeUtils typeUtils;
 
     public OllirExprGeneratorVisitor(SymbolTable table) {
+        this.table = table;
         this.typeUtils = new TypeUtils("", table);
     }
 
@@ -82,10 +84,38 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         StringBuilder argumentsCode = new StringBuilder();
 
-        for (int i = 1; i < functionCall.getNumChildren(); i++) {
-            OllirExprResult result = visit(functionCall.getJmmChild(i));
-            computation.append(result.getComputation());
-            argumentsCode.append(", " + result.getCode());
+        int argumentsNumber = functionCall.getNumChildren() - 1;
+        Type lastArgumentType = typeUtils.getExprType(functionCall.getChildren().get(argumentsNumber));
+
+        if (!functionCall.hasAttribute("hasVarargs") || !functionCall.getObject("hasVarargs", Boolean.class) || lastArgumentType.isArray()) {
+            for (int i = 1; i < functionCall.getNumChildren(); i++) {
+                OllirExprResult result = visit(functionCall.getJmmChild(i));
+                computation.append(result.getComputation());
+                argumentsCode.append(", " + result.getCode());
+            }
+        } else {
+            int paramsNumber = table.getParameters(functionCall.get("name")).size();
+            int arrayElements = argumentsNumber - paramsNumber + 1;
+            String arrayTemp = OptUtils.getTemp();
+            computation.append(arrayTemp).append(".array.i32").append(SPACE);
+            computation.append(ASSIGN).append(".array.i32").append(SPACE);
+            computation.append("new(array, ").append(arrayElements).append(".i32).array.i32").append(END_STMT);
+
+            for (int i = 1; i < paramsNumber; i++) {
+                OllirExprResult result = visit(functionCall.getJmmChild(i));
+                computation.append(result.getComputation());
+                argumentsCode.append(", " + result.getCode());
+            }
+
+            for (int i = 0; i < arrayElements; i++) {
+                JmmNode arrayElement = functionCall.getChild(1 + i + argumentsNumber - arrayElements);
+                OllirExprResult arrayElementResult = visit(arrayElement);
+                computation.append(arrayElementResult.getComputation());
+                computation.append(arrayTemp).append("[").append(i).append(".i32].i32").append(SPACE);
+                computation.append(ASSIGN).append(".i32").append(SPACE).append(arrayElementResult.getCode()).append(END_STMT);
+            }
+
+            argumentsCode.append(", ").append(arrayTemp).append(".array.i32");
         }
 
         if (!functionCall.getParent().getKind().equals(SIMPLE_STMT.toString())) {
@@ -212,7 +242,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         computation.append(code);
         computation.append(SPACE).append(ASSIGN).append(intType)
-            .append(" arraylength(").append(arrayName).append(arrayType).append(")").append(intType).append(END_STMT);
+                .append(" arraylength(").append(arrayName).append(arrayType).append(")").append(intType).append(END_STMT);
 
         return new OllirExprResult(code.toString(), computation.toString());
     }

@@ -1,11 +1,7 @@
 class MyClass {
-    int foo(boolean a) {
-        int r;
-        if (!a) {
-            r = 1;
-        } else {
-            r = 0;
-        }
-        return r;
+    int foo() {
+        boolean b;
+        b = 1 < 2;
+        return 0;
     }
 }

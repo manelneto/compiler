@@ -320,6 +320,12 @@ public class JasminGenerator {
         Operand caller = (Operand) callInstruction.getCaller();
         String callerName = getFullName(caller.getName());
 
+        if (callerName.equals("array")) {
+            code.append(generators.apply(callInstruction.getArguments().get(0)));
+            code.append("newarray").append(NL);
+            return code.toString();
+        }
+
         ClassType callerClass = (ClassType) caller.getType();
         String callerType = getFullName(callerClass.getName());
 
@@ -397,6 +403,7 @@ public class JasminGenerator {
         return code.toString();
     }
 
+
     private String getCall(String invocationType, String className, String methodName, List<String> argumentsType, String returnType) {
         StringBuilder code = new StringBuilder();
         code.append(invocationType).append(" ");
@@ -413,7 +420,7 @@ public class JasminGenerator {
         return switch (type.getTypeOfElement()) {
             case INT32 -> "I";
             case BOOLEAN -> "Z";
-            case ARRAYREF -> "[Ljava/lang/String;"; // TODO: CP3
+            case ARRAYREF -> "[" + toJasminType(((ArrayType) type).getElementType());
             case OBJECTREF, CLASS -> "L" + getFullName(((ClassType) type).getName()) + ";";
             case THIS -> null;
             case STRING -> "Ljava/lang/String;";

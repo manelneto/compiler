@@ -1,23 +1,26 @@
-import io;
-import Quicksort;
+import ioPlus;
 
-class CompileBasic extends Quicksort {
+class IfWhileNested {
+    public int func(){
+        boolean flag;
 
-    int intField;
-    boolean boolField;
+        flag = true;
+        flag = !flag;
 
-    public int method1() {
-        int intLocal1;
-        boolean boolLocal1;
+        if(flag){
+            ioPlus.printResult(1);
+        } else {
+            ioPlus.printResult(2);
+        }
 
-        return 0;
+        flag = !flag;
+        return 1;
     }
-
-    public boolean method2(int intParam1, boolean boolParam1) {
-        return boolParam1;
-    }
-
 
     public static void main(String[] args) {
+        IfWhileNested d;
+        int a;
+        d = new IfWhileNested();
+        a = d.func();
     }
 }

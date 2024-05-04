@@ -249,7 +249,7 @@ public class JasminGenerator {
         StringBuilder code = new StringBuilder();
 
         code.append(generators.apply(unaryOp.getOperand()));
-        code.append("iconst_m1").append(NL);
+        code.append("iconst_1").append(NL);
         code.append("ixor").append(NL);
 
         return code.toString();

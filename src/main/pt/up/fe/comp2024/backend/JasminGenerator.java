@@ -48,6 +48,7 @@ public class JasminGenerator {
         generators.put(SingleOpInstruction.class, this::generateSingleOp);
         generators.put(LiteralElement.class, this::generateLiteral);
         generators.put(Operand.class, this::generateOperand);
+        generators.put(ArrayOperand.class, this::generateArrayOperand);
         generators.put(BinaryOpInstruction.class, this::generateBinaryOp);
         generators.put(UnaryOpInstruction.class, this::generateUnaryOp);
         generators.put(ReturnInstruction.class, this::generateReturn);
@@ -57,7 +58,6 @@ public class JasminGenerator {
         generators.put(CallInstruction.class, this::generateCall);
         generators.put(GotoInstruction.class, this::generateGoto);
         generators.put(CondBranchInstruction.class, this::generateCondBranch);
-        //generators.put(ArrayOperand.class, this::generateArrayOp);
     }
 
 
@@ -89,7 +89,7 @@ public class JasminGenerator {
 
         String defaultConstructor = ";default constructor\n" +
                 ".method public <init>()V\n" +
-                TAB + "aload 0\n" +
+                TAB + "aload_0\n" +
                 TAB + "invokespecial " + superClassName + ".<init>()V\n" +
                 TAB + "return\n" +
                 ".end method\n";
@@ -159,8 +159,6 @@ public class JasminGenerator {
     private String generateAssign(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
         // TODO: assign boolean b = 1 < 2;
-        // generate code for loading what's on the right
-        code.append(generators.apply(assign.getRhs()));
 
         // store value in the stack in destination
         Element lhs = assign.getDest();
@@ -168,6 +166,17 @@ public class JasminGenerator {
         if (!(lhs instanceof Operand operand)) {
             throw new NotImplementedException(lhs.getClass());
         }
+
+        if (operand instanceof ArrayOperand arrayOperand) {
+            code.append(generateOperand(arrayOperand));
+            code.append(generators.apply(arrayOperand.getIndexOperands().get(0)));
+            code.append(generators.apply(assign.getRhs()));
+            code.append("iastore").append(NL);
+            return code.toString();
+        }
+
+        // generate code for loading what's on the right
+        code.append(generators.apply(assign.getRhs()));
 
         // get register
         int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
@@ -214,11 +223,22 @@ public class JasminGenerator {
         String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
         ElementType operandType = operand.getType().getTypeOfElement();
-        if (operandType.equals(ElementType.INT32) || operandType.equals(ElementType.BOOLEAN)) {
+
+        if ((operandType.equals(ElementType.INT32) && !(operand instanceof ArrayOperand)) || operandType.equals(ElementType.BOOLEAN)) {
             return "iload" + underscoreOrSpace + register + NL;
         }
 
         return "aload" + underscoreOrSpace + register + NL;
+    }
+
+    private String generateArrayOperand(ArrayOperand arrayOperand) {
+        StringBuilder code = new StringBuilder();
+
+        code.append(generateOperand(arrayOperand));
+        code.append(generators.apply(arrayOperand.getIndexOperands().get(0)));
+        code.append("iaload").append(NL);
+
+        return code.toString();
     }
 
     private String generateBinaryOp(BinaryOpInstruction binaryOp) {
@@ -322,7 +342,13 @@ public class JasminGenerator {
 
         if (callerName.equals("array")) {
             code.append(generators.apply(callInstruction.getArguments().get(0)));
-            code.append("newarray").append(NL);
+            code.append("newarray int").append(NL);
+            return code.toString();
+        }
+
+        if (caller.getType() instanceof ArrayType arrayType) {
+            code.append(generators.apply(caller));
+            code.append("arraylength").append(NL);
             return code.toString();
         }
 

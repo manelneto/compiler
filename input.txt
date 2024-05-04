@@ -1,26 +1,9 @@
 import ioPlus;
+class ArrayAccess {
 
-class IfWhileNested {
-    public int func(){
-        boolean flag;
-
-        flag = true;
-        flag = !flag;
-
-        if(flag){
-            ioPlus.printResult(1);
-        } else {
-            ioPlus.printResult(2);
-        }
-
-        flag = !flag;
-        return 1;
-    }
-
-    public static void main(String[] args) {
-        IfWhileNested d;
-        int a;
-        d = new IfWhileNested();
-        a = d.func();
-    }
+	public static void main(String[] args) {
+	    int[] a;
+        a = new int[5];
+        a[0] = a[1];
+	}
 }

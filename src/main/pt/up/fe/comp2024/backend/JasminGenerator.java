@@ -158,7 +158,7 @@ public class JasminGenerator {
 
     private String generateAssign(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
-
+        // TODO: assign boolean b = 1 < 2;
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
@@ -232,11 +232,10 @@ public class JasminGenerator {
         String op = switch (binaryOp.getOperation().getOpType()) {
             case ADD -> "iadd";
             case MUL -> "imul";
-            case SUB -> "isub";
+            case SUB, LTH, GTH, LTE, GTE, EQ, NEQ -> "isub";
             case DIV -> "idiv";
             case AND, ANDB -> "iand";
             case OR, ORB -> "ior";
-            case EQ, NEQ, LTE, GTE -> "icmp";
             case NOT, NOTB -> "ineg";
             default -> throw new NotImplementedException(binaryOp.getOperation().getOpType());
         };
@@ -377,7 +376,22 @@ public class JasminGenerator {
             code.append(generators.apply(singleOpCondInstruction.getCondition()));
             code.append("ifne ").append(condBranchInstruction.getLabel());
         } else {
+            // TODO: and (&&) operation
+            OpCondInstruction opCondInstruction = (OpCondInstruction) condBranchInstruction;
+            OpInstruction condition = opCondInstruction.getCondition();
+            code.append(generators.apply(condition.toInstruction()));
 
+            String jump = switch (condition.getOperation().getOpType()) {
+                case LTH -> "iflt ";
+                case LTE -> "ifle ";
+                case GTH -> "ifgt ";
+                case GTE -> "ifge ";
+                case EQ -> "ifeq ";
+                case NEQ -> "ifne ";
+                default -> throw new NotImplementedException(condition.getOperation().getOpType());
+            };
+
+            code.append(jump).append(condBranchInstruction.getLabel());
         }
 
         return code.toString();

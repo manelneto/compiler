@@ -56,9 +56,9 @@ public class JasminGenerator {
             entry("iload", 1),
             entry("imul", -1),
             entry("ineg", 0),
-            entry("invokespecial", -1),
-            entry("invokestatic", 0),
-            entry("invokevirtual", 1),
+            entry("invokespecial", 0),
+            entry("invokestatic", 1),
+            entry("invokevirtual", 0),
             entry("ior", -1),
             entry("ireturn", -1),
             entry("istore", -1),
@@ -186,12 +186,14 @@ public class JasminGenerator {
 
             if (instruction instanceof CallInstruction callInstruction && !callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID)) {
                 instructionCode.append(TAB + "pop" + NL);
+                this.updateStack("pop");
             }
         }
 
         code.append(TAB).append(".limit stack ").append(this.maxStack).append(NL);
 
-        int locals = method.getVarTable().values().stream().max(Comparator.comparingInt(Descriptor::getVirtualReg)).get().getVirtualReg() + 1;
+        Descriptor maxRegister = method.getVarTable().values().stream().max(Comparator.comparingInt(Descriptor::getVirtualReg)).orElse(new Descriptor(0));
+        int locals = maxRegister.getVirtualReg() + 1;
         code.append(TAB).append(".limit locals ").append(locals).append(NL);
 
         code.append(instructionCode);
@@ -443,7 +445,7 @@ public class JasminGenerator {
                     code.append(generators.apply(argument));
                 }
 
-                this.updateStack("invokevirtual", argumentsType.size(), callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID));
+                this.updateStack("invokevirtual", argumentsType.size());
                 break;
 
             case invokespecial:
@@ -453,7 +455,7 @@ public class JasminGenerator {
                     code.append(generators.apply(argument));
                 }
 
-                this.updateStack("invokespecial", argumentsType.size(), callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID));
+                this.updateStack("invokespecial", argumentsType.size());
                 break;
 
             case invokestatic:
@@ -466,7 +468,7 @@ public class JasminGenerator {
                     code.append(generators.apply(argument));
                 }
 
-                this.updateStack("invokestatic", argumentsType.size(), callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID));
+                this.updateStack("invokestatic", argumentsType.size());
                 break;
 
             case NEW:
@@ -559,11 +561,8 @@ public class JasminGenerator {
         }
     }
 
-    private void updateStack(String instruction, int argumentsNumber, boolean isVoid) {
+    private void updateStack(String instruction, int argumentsNumber) {
         this.currentStack += this.stackUsage.get(instruction) - argumentsNumber;
-        if (!isVoid) {
-            this.currentStack += 1;
-        }
 
         if (this.currentStack > this.maxStack) {
             this.maxStack = this.currentStack;

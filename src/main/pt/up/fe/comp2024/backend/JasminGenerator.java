@@ -448,6 +448,11 @@ public class JasminGenerator {
 
             case invokespecial:
                 invocationCode = getCall(invocationType.toString(), callerType, "<init>", argumentsType, "V");
+
+                for (Element argument : callInstruction.getArguments()) {
+                    code.append(generators.apply(argument));
+                }
+
                 this.updateStack("invokespecial", argumentsType.size(), callInstruction.getReturnType().getTypeOfElement().equals(ElementType.VOID));
                 break;
 

@@ -132,8 +132,10 @@ public class JasminGenerator {
         String returnType = toJasminType(method.getReturnType());
         code.append(")").append(returnType).append(NL);
 
+        int locals = method.getVarTable().values().stream().max((d1, d2) -> Integer.compare(d1.getVirtualReg(), d2.getVirtualReg())).get().getVirtualReg() + 1;
+
         code.append(TAB).append(".limit stack 99").append(NL);
-        code.append(TAB).append(".limit locals 99").append(NL);
+        code.append(TAB).append(".limit locals ").append(locals).append(NL);
 
         for (Instruction inst : method.getInstructions()) {
             for (String label : method.getLabels(inst)) {

@@ -9,6 +9,7 @@ import pt.up.fe.specs.util.exceptions.NotImplementedException;
 import pt.up.fe.specs.util.utilities.StringLines;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -132,7 +133,7 @@ public class JasminGenerator {
         String returnType = toJasminType(method.getReturnType());
         code.append(")").append(returnType).append(NL);
 
-        int locals = method.getVarTable().values().stream().max((d1, d2) -> Integer.compare(d1.getVirtualReg(), d2.getVirtualReg())).get().getVirtualReg() + 1;
+        int locals = method.getVarTable().values().stream().max(Comparator.comparingInt(Descriptor::getVirtualReg)).get().getVirtualReg() + 1;
 
         code.append(TAB).append(".limit stack 99").append(NL);
         code.append(TAB).append(".limit locals ").append(locals).append(NL);

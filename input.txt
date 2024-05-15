@@ -1,14 +1,17 @@
-import ioPlus;
+import io;
 
-class Test {
-    public static void main(String[] args) {
-        Test test;
-        test = new Test();
-        test.f();
-    }
+class Arithmetic_and {
+	public static void main(String[] args) {
+		boolean a;
+		Arithmetic_and c;
 
-    public int f() {
-        ioPlus.printResult(1);
-        return 0;
-    }
+		c = new Arithmetic_and();
+
+		a = true && c.p(1);
+	}
+
+	boolean p(int value) {
+   	    io.print(value);
+   	    return true;
+   	}
 }

@@ -1,7 +1,7 @@
 class Arithmetic_and {
 	public static void main(String[] args) {
 		boolean a;
-		a = 1 < 2;
+		a = true < false;
 
 	}
 }

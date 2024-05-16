@@ -251,64 +251,48 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         String exprType = binaryExpr.get("type");
 
 
-        computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);
-        computation.append(lhs.getCode()).append(SPACE);
-
-        Type type = typeUtils.getExprType(binaryExpr);
-        computation.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
-        computation.append(rhs.getCode()).append(END_STMT);
-
         if (exprType.equals(typeUtils.getBooleanTypeName())) {
             String booleanType = OptUtils.toOllirType(typeUtils.getBooleanType());
             String ifNumber = OptUtils.getIfNumber();
 
-            String negCode = OptUtils.getTemp() + booleanType;
-            String negComputation = negCode + SPACE + ASSIGN + booleanType +
-                    " !" + booleanType + SPACE + code + END_STMT;
-
-            computation.append(negComputation);
-
             if (binaryExpr.get("op").equals("&&")) {
-//              String lhsNegCode= OptUtils.getTemp() + booleanType;
-//              String lhsNeg = lhsNegCode + SPACE + ASSIGN + booleanType +
-//                    " !" + booleanType + SPACE + lhs.getCode() + END_STMT;
-//
-//              computation.append(lhsNeg);
 
-//              String rhsNegCode= OptUtils.getTemp() + booleanType;
-//              String rhsNeg = rhsNegCode + SPACE + ASSIGN + booleanType +
-//                    " !" + booleanType + SPACE + rhs.getCode() + END_STMT;
-
-
-//                String lhsNegCode = OptUtils.getTemp() + booleanType;
-//                String lhsNeg = lhsNegCode + SPACE + ASSIGN + booleanType +
-//                        " !" + booleanType + SPACE + code + END_STMT;
-//                computation.append(lhsNeg);
-
-                computation.append("if (").append(negCode).append(") goto if_then_").append(ifNumber).append(END_STMT); // TODO: change code to lhsNegCode for short circuit
-                //computation.append(rhsNeg);
-                //computation.append("if (").append(rhsNegCode).append(") goto L_false").append(END_STMT);
+                computation.append("if (").append(lhs.getCode()).append(") goto if_then_").append(ifNumber).append(END_STMT);
                 computation.append(code).append(SPACE).append(ASSIGN).append(booleanType).append(SPACE)
-                        .append("1").append(booleanType).append(END_STMT)
+                        .append("0").append(booleanType).append(END_STMT)
                         .append("goto if_end_").append(ifNumber).append(END_STMT);
                 computation.append("if_then_").append(ifNumber).append(": ").append(code).append(SPACE).append(ASSIGN).append(booleanType).append(SPACE)
-                        .append("0").append(booleanType).append(END_STMT);
+                        .append(rhs.getCode()).append(END_STMT);
                 computation.append("if_end_").append(ifNumber).append(": ");
             }
             else {
                 assert binaryExpr.get("op").equals("<");
 
-                computation.append("if (").append(negCode).append(") goto if_then_").append(ifNumber).append(END_STMT);
+                computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);
+                computation.append(lhs.getCode()).append(SPACE);
+
+                Type type = typeUtils.getExprType(binaryExpr);
+                computation.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
+                computation.append(rhs.getCode()).append(END_STMT);
+
+                computation.append("if (").append(code).append(") goto if_then_").append(ifNumber).append(END_STMT);
 
                 computation.append(code).append(SPACE).append(ASSIGN).append(booleanType).append(SPACE)
-                        .append("1").append(booleanType).append(END_STMT)
+                        .append("0").append(booleanType).append(END_STMT)
                         .append("goto if_end_").append(ifNumber).append(END_STMT);
                 computation.append("if_then_").append(ifNumber).append(": ").append(code).append(SPACE).append(ASSIGN).append(booleanType).append(SPACE)
-                        .append("0").append(booleanType).append(END_STMT);
+                        .append("1").append(booleanType).append(END_STMT);
                 computation.append("if_end_").append(ifNumber).append(": ");
             }
         }
+        else {
+            computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);
+            computation.append(lhs.getCode()).append(SPACE);
 
+            Type type = typeUtils.getExprType(binaryExpr);
+            computation.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
+            computation.append(rhs.getCode()).append(END_STMT);
+        }
 
         return new OllirExprResult(code, computation);
     }

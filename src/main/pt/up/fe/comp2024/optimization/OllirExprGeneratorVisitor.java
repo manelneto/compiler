@@ -284,6 +284,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
                         .append("1").append(booleanType).append(END_STMT);
                 computation.append("if_end_").append(ifNumber).append(": ");
             }
+
         }
         else {
             computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);

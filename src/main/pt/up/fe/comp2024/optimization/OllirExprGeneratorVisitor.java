@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp2024.ast.Kind;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
 import static pt.up.fe.comp2024.ast.Kind.*;
@@ -246,7 +247,14 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         // code to compute self
         Type resType = typeUtils.getExprType(binaryExpr);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code = OptUtils.getTemp() + resOllirType;
+        String code;
+        if (binaryExpr.getParent().getKind().equals(ASSIGN_STMT.getNodeName())) {
+            code = binaryExpr.getParent().get("name") + resOllirType;
+        }
+        else {
+            code = OptUtils.getTemp() + resOllirType;
+        }
+
 
         String exprType = binaryExpr.get("type");
 

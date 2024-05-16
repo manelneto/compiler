@@ -1,12 +1,7 @@
-class InstSelection_if_lt {
+class InstSelection_iinc {
 	public static void main(String[] args) {
-	    int a;
-        a = 0;
-
-		if(a < 0) {
-			a = 1;
-		} else {
-			a = 2;
-		}
+		int i;
+		i = 2;
+		i = i+1;
 	}
 }

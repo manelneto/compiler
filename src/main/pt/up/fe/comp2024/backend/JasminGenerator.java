@@ -225,11 +225,27 @@ public class JasminGenerator {
             return code.toString();
         }
 
+        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
+        if (assign.getRhs() instanceof BinaryOpInstruction operation) {
+
+            if (operation.getLeftOperand() instanceof  Operand leftOperand) {
+                boolean isSum = operation.getOperation().getOpType().equals(OperationType.ADD);
+                boolean isSameVar = operand.getName().equals(leftOperand.getName());
+                if (isSum && isSameVar && operation.getRightOperand() instanceof LiteralElement rightOperand) {
+                    this.updateStack("iinc");
+                    code.append("iinc ").append(register).append(" ").append(rightOperand.getLiteral()).append(NL);
+                    return code.toString();
+                }
+            }
+
+        }
+
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
         // get register
-        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
 
         String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 

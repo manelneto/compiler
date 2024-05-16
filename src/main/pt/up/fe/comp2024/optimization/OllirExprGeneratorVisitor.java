@@ -268,14 +268,14 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             else {
                 assert binaryExpr.get("op").equals("<");
 
-                computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);
-                computation.append(lhs.getCode()).append(SPACE);
 
+                StringBuilder operationCode = new StringBuilder();
                 Type type = typeUtils.getExprType(binaryExpr);
-                computation.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
-                computation.append(rhs.getCode()).append(END_STMT);
+                operationCode.append(lhs.getCode()).append(SPACE);
+                operationCode.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
+                operationCode.append(rhs.getCode());
 
-                computation.append("if (").append(code).append(") goto if_then_").append(ifNumber).append(END_STMT);
+                computation.append("if (").append(operationCode).append(") goto if_then_").append(ifNumber).append(END_STMT);
 
                 computation.append(code).append(SPACE).append(ASSIGN).append(booleanType).append(SPACE)
                         .append("0").append(booleanType).append(END_STMT)

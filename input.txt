@@ -1,5 +1,10 @@
 class Test {
-    public Test f() {
-        return this;
+    public int f() {
+        return this.f1();
+    }
+    public int f1() {
+        Test a;
+        a = this;
+        return 0;
     }
 }

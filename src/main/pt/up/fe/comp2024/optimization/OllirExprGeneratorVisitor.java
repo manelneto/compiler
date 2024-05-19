@@ -359,7 +359,9 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitThis(JmmNode this_, Void unused) {
         String name = this_.get("name"); // this
-        return new OllirExprResult(name);
+        if (this_.getParent().getKind().equals(FUNCTION_CALL.toString()))
+            return new OllirExprResult(name);
+        return new OllirExprResult(name + "." + table.getClassName());
     }
 
     /**

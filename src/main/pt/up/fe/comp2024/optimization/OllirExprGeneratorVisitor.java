@@ -35,6 +35,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
     protected void buildVisitor() {
         addVisit(PAREN_EXPR, this::visitParenExpr);
         addVisit(ARRAY_ACCESS, this::visitArrayAccess);
+        addVisit(ARRAY_ASSIGN_STMT, this::visitVarRefExpr);
         addVisit(FUNCTION_CALL, this::visitFunctionCall);
         addVisit(LENGTH, this::visitLength);
         addVisit(UNARY_EXPR, this::visitUnaryExpr);
@@ -325,7 +326,13 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
     private OllirExprResult visitVarRefExpr(JmmNode varRefExpr, Void unused) {
         String name = varRefExpr.get("name");
-        Type type = typeUtils.getExprType(varRefExpr);
+        Type type;
+        if (varRefExpr.getKind().equals(ARRAY_ASSIGN_STMT.toString())) {
+            type = typeUtils.getIntArrayType();
+        }
+        else {
+            type = typeUtils.getExprType(varRefExpr);
+        }
         String ollirType = OptUtils.toOllirType(type);
 
         if (typeUtils.isImport(name)) {

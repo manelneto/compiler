@@ -4,6 +4,7 @@ import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp2024.ast.NodeUtils;
 import pt.up.fe.comp2024.ast.TypeUtils;
 
@@ -275,14 +276,15 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
     private String visitArrayAssignStmt(JmmNode arrayAssignStmt, Void unused) {
         StringBuilder code = new StringBuilder();
-        String arrayName = arrayAssignStmt.get("name");
 
+        OllirExprResult arrayExprResult = exprVisitor.visit(arrayAssignStmt);
         OllirExprResult indexExprResult = exprVisitor.visit(arrayAssignStmt.getChild(0));
         OllirExprResult valueExprResult = exprVisitor.visit(arrayAssignStmt.getChild(1));
 
+        code.append(arrayExprResult.getComputation());
         code.append(indexExprResult.getComputation());
         code.append(valueExprResult.getComputation());
-        code.append(arrayName).append("[").append(indexExprResult.getCode()).append("].i32 ");
+        code.append(arrayExprResult.getCode()).append("[").append(indexExprResult.getCode()).append("].i32 ");
         code.append(ASSIGN).append(".i32 ").append(valueExprResult.getCode()).append(END_STMT);
 
         return code.toString();

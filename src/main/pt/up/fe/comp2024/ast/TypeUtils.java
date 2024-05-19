@@ -107,7 +107,7 @@ public class TypeUtils {
     }
 
     public Type getExprType(JmmNode expr) {
-        assert Kind.fromString(expr.getKind()).isExpr();
+        assert (Kind.fromString(expr.getKind()).isExpr());
 
         if (expr.hasAttribute("type") && expr.hasAttribute("isArray")) {
             return new Type(expr.get("type"), expr.getObject("isArray", Boolean.class));

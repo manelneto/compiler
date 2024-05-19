@@ -1,7 +1,8 @@
 class InstSelection_iinc {
-	public static void main(String[] args) {
-		int i;
-		i = 2;
-		i = i+1;
+    int[] a;
+	public int f() {
+	    int b;
+	    b = a[0];
+	    return 0;
 	}
 }

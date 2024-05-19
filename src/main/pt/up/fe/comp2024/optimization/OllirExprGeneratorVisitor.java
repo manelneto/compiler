@@ -61,14 +61,17 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         JmmNode array = arrayAccess.getChild(0); // TODO: ID or FunctionCall?
         JmmNode index = arrayAccess.getChild(1);
 
-        OllirExprResult result = visit(index);
+
+        OllirExprResult arrayResult= visit(array);
+        OllirExprResult indexResult = visit(index);
 
         code.append(OptUtils.getTemp()).append(INT_TYPE);
 
-        computation.append(result.getComputation());
+        computation.append(arrayResult.getComputation());
+        computation.append(indexResult.getComputation());
         computation.append(code).append(SPACE).append(ASSIGN).append(INT_TYPE).append(SPACE);
-        computation.append(array.get("name")).append(ARRAY_INT_TYPE);
-        computation.append("[").append(result.getCode()).append("]").append(INT_TYPE).append(END_STMT);
+        computation.append(arrayResult.getCode()).append(ARRAY_INT_TYPE);
+        computation.append("[").append(indexResult.getCode()).append("]").append(INT_TYPE).append(END_STMT);
 
         return new OllirExprResult(code.toString(), computation);
     }
@@ -247,19 +250,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         // code to compute self
         Type resType = typeUtils.getExprType(binaryExpr);
         String resOllirType = OptUtils.toOllirType(resType);
-        String code;
-        if (binaryExpr.getParent().getKind().equals(ASSIGN_STMT.getNodeName())) {
-            code = binaryExpr.getParent().get("name") + resOllirType;
-        }
-        else {
-            code = OptUtils.getTemp() + resOllirType;
-        }
+
+        String code = OptUtils.getTemp() + resOllirType;
 
 
-        String exprType = binaryExpr.get("type");
-
-
-        if (exprType.equals(typeUtils.getBooleanTypeName())) {
+        if (resType.getName().equals(typeUtils.getBooleanTypeName())) {
             String booleanType = OptUtils.toOllirType(typeUtils.getBooleanType());
             String ifNumber = OptUtils.getIfNumber();
 
@@ -276,15 +271,11 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
             else {
                 assert binaryExpr.get("op").equals("<");
 
-
-                StringBuilder operationCode = new StringBuilder();
-                Type type = typeUtils.getExprType(binaryExpr);
-                operationCode.append(lhs.getCode()).append(SPACE);
-                operationCode.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
-                operationCode.append(rhs.getCode());
+                String operationCode = lhs.getCode() + SPACE +
+                        binaryExpr.get("op") + booleanType + SPACE +
+                        rhs.getCode();
 
                 computation.append("if (").append(operationCode).append(") goto if_then_").append(ifNumber).append(END_STMT);
-
                 computation.append(code).append(SPACE).append(ASSIGN).append(booleanType).append(SPACE)
                         .append("0").append(booleanType).append(END_STMT)
                         .append("goto if_end_").append(ifNumber).append(END_STMT);
@@ -295,11 +286,20 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
         }
         else {
+
+            if (binaryExpr.getParent().getKind().equals(ASSIGN_STMT.getNodeName())) {  //On assign, assign directly to the variable without temp
+                assert (!binaryExpr.get("type").equals(typeUtils.getBooleanTypeName()));
+                code = lhs.getCode() + SPACE +
+                        binaryExpr.get("op") + OptUtils.toOllirType(resType) + SPACE +
+                        rhs.getCode();
+
+                return new OllirExprResult(code, computation);
+            }
+
             computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);
             computation.append(lhs.getCode()).append(SPACE);
 
-            Type type = typeUtils.getExprType(binaryExpr);
-            computation.append(binaryExpr.get("op")).append(OptUtils.toOllirType(type)).append(SPACE);
+            computation.append(binaryExpr.get("op")).append(OptUtils.toOllirType(resType)).append(SPACE);
             computation.append(rhs.getCode()).append(END_STMT);
         }
 

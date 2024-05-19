@@ -1,5 +1,7 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.Ollir;
+import org.specs.comp.ollir.OllirErrorException;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
@@ -22,6 +24,8 @@ public class JmmOptimizationImpl implements JmmOptimization {
     public OllirResult optimize(OllirResult ollirResult) {
 
         //TODO: Do your OLLIR-based optimizations here
+
+
 
         return ollirResult;
     }

@@ -226,8 +226,10 @@ public class TypeUtils {
         assert this_.getKind().equals(Kind.THIS.toString());
 
         annotate(this_, "isInstance", true);
-
         JmmNode parent = this_.getParent();
+        if (parent.getKind().equals(Kind.RETURN_STMT.toString())) {
+            return new Type(table.getClassName(), false);
+        }
         String name = parent.get("name");
 
         if (table.getMethods().contains(name)) {

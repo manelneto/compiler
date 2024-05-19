@@ -290,8 +290,10 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-
+        int register = 0;
+        if (!operand.getName().equals("this")) {
+            register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        }
         String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
         ElementType operandType = operand.getType().getTypeOfElement();

@@ -1,7 +1,5 @@
-class InstSelection_iinc {
-    int[] a;
-    public int f() {
-        a[0] = 1;
-        return 0;
+class Test {
+    public Test f() {
+        return this;
     }
 }

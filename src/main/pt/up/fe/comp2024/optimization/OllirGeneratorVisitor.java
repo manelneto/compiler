@@ -297,13 +297,17 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
         StringBuilder code = new StringBuilder();
 
         OllirExprResult expr = OllirExprResult.EMPTY;
+        String thisType = "";
         if (returnStmt.getNumChildren() > 0) {
             expr = exprVisitor.visit(returnStmt.getJmmChild(0));
+            if (returnStmt.getChild(0).getKind().equals(THIS.toString()))
+                thisType ="." + table.getClassName();
         }
+
 
         code.append(expr.getComputation());
         code.append("ret").append(OptUtils.toOllirType(retType)).append(SPACE);
-        code.append(expr.getCode()).append(END_STMT);
+        code.append(expr.getCode()).append(thisType).append(END_STMT);
 
         return code.toString();
     }

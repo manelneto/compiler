@@ -1,8 +1,7 @@
 class InstSelection_iinc {
     int[] a;
-	public int f() {
-	    int b;
-	    b = a[0];
-	    return 0;
-	}
+    public int f() {
+        a = [1,2,3,4];
+        return 0;
+    }
 }

@@ -58,7 +58,7 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
         StringBuilder code = new StringBuilder();
         StringBuilder computation = new StringBuilder();
 
-        JmmNode array = arrayAccess.getChild(0); // TODO: ID or FunctionCall?
+        JmmNode array = arrayAccess.getChild(0);
         JmmNode index = arrayAccess.getChild(1);
 
 

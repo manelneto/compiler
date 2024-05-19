@@ -252,13 +252,14 @@ public class OllirGeneratorVisitor extends AJmmVisitor<Void, String> {
 
         StringBuilder code = new StringBuilder();
 
+        code.append(rhs.getComputation());
+
         if (typeUtils.isField(lhs)) {
             code.append("putfield(this, ");
             code.append(lhs).append(lhsType).append(", ");
             code.append(rhs.getCode()).append(").V").append(END_STMT);
         } else {
             // code to compute the children
-            code.append(rhs.getComputation());
             code.append(lhs).append(lhsType);
 
             // code to compute self

@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import pt.up.fe.comp.jmm.analysis.table.Symbol;
 import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.analysis.table.Type;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
@@ -290,11 +291,14 @@ public class OllirExprGeneratorVisitor extends AJmmVisitor<Void, OllirExprResult
 
             if (binaryExpr.getParent().getKind().equals(ASSIGN_STMT.getNodeName())) {  //On assign, assign directly to the variable without temp
                 assert (!binaryExpr.get("type").equals(typeUtils.getBooleanTypeName()));
-                code = lhs.getCode() + SPACE +
-                        binaryExpr.get("op") + OptUtils.toOllirType(resType) + SPACE +
-                        rhs.getCode();
+                boolean isField = table.getFields().contains(new Symbol(typeUtils.getStmtType(binaryExpr.getParent()) ,binaryExpr.getParent().get("name")));
+                if (!isField) {
+                    code = lhs.getCode() + SPACE +
+                            binaryExpr.get("op") + OptUtils.toOllirType(resType) + SPACE +
+                            rhs.getCode();
 
-                return new OllirExprResult(code, computation);
+                    return new OllirExprResult(code, computation);
+                }
             }
 
             computation.append(code).append(SPACE).append(ASSIGN).append(resOllirType).append(SPACE);

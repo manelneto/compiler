@@ -19,8 +19,6 @@ public class Duplicated extends AnalysisVisitor {
     public void buildVisitor() {
         addVisit(Kind.CLASS_DECL, this::visitClassDecl);
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
-        //addVisit(Kind.ARRAY_ACCESS, this::visitArrayAccess);
-        //addVisit(Kind.ARRAY, this::visitArray);
     }
 
     private Void visitMethodDecl(JmmNode method, SymbolTable table) {

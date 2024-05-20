@@ -46,6 +46,7 @@ public class Launcher {
         JmmOptimizationImpl ollirGen = new JmmOptimizationImpl();
         OllirResult ollirResult = ollirGen.toOllir(semanticsResult);
         TestUtils.noErrors(ollirResult.getReports());
+        ollirGen.optimize(ollirResult);
 
         // Print OLLIR code
         System.out.println(ollirResult.getOllirCode());

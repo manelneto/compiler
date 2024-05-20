@@ -225,7 +225,7 @@ public class JasminGenerator {
             return code.toString();
         }
 
-        int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        int register = Math.max(this.currentMethod.getVarTable().get(operand.getName()).getVirtualReg(), 0);
 
         if (assign.getRhs() instanceof BinaryOpInstruction operation
                 && operation.getLeftOperand() instanceof Operand leftOperand
@@ -240,7 +240,7 @@ public class JasminGenerator {
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
 
-        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
+        String underscoreOrSpace = register <= 3 ? "_" : " ";
 
         String operandCode = switch (operand.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "istore";
@@ -283,9 +283,9 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        int register = operand.getName().equals("this") ? 0 : this.currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+        int register = Math.max(this.currentMethod.getVarTable().get(operand.getName()).getVirtualReg(), 0);
 
-        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
+        String underscoreOrSpace = register <= 3 ? "_" : " ";
 
         ElementType operandType = operand.getType().getTypeOfElement();
 
@@ -379,6 +379,7 @@ public class JasminGenerator {
 
     private String generateGetField(GetFieldInstruction getFieldInstruction) {
         Operand field = getFieldInstruction.getField();
+
         int register = Math.max(currentMethod.getVarTable().get(field.getName()).getVirtualReg(), 0);
 
         String underscoreOrSpace = register <= 3 ? "_" : " ";
@@ -397,7 +398,9 @@ public class JasminGenerator {
 
     private String generatePutField(PutFieldInstruction putFieldInstruction) {
         Operand field = putFieldInstruction.getField();
+
         int register = Math.max(currentMethod.getVarTable().get(field.getName()).getVirtualReg(), 0);
+
         String underscoreOrSpace = register <= 3 ? "_" : " ";
 
         StringBuilder code = new StringBuilder();

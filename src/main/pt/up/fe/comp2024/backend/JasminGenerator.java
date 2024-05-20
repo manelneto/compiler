@@ -227,18 +227,14 @@ public class JasminGenerator {
 
         int register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
 
-        if (assign.getRhs() instanceof BinaryOpInstruction operation) {
-
-            if (operation.getLeftOperand() instanceof Operand leftOperand) {
-                boolean isSum = operation.getOperation().getOpType().equals(OperationType.ADD);
-                boolean isSameVar = operand.getName().equals(leftOperand.getName());
-                if (isSum && isSameVar && operation.getRightOperand() instanceof LiteralElement rightOperand) {
-                    this.updateStack("iinc");
-                    code.append("iinc ").append(register).append(" ").append(rightOperand.getLiteral()).append(NL);
-                    return code.toString();
-                }
-            }
-
+        if (assign.getRhs() instanceof BinaryOpInstruction operation
+                && operation.getLeftOperand() instanceof Operand leftOperand
+                && operation.getOperation().getOpType().equals(OperationType.ADD)
+                && operand.getName().equals(leftOperand.getName())
+                && operation.getRightOperand() instanceof LiteralElement rightOperand) {
+            this.updateStack("iinc");
+            code.append("iinc ").append(register).append(" ").append(rightOperand.getLiteral()).append(NL);
+            return code.toString();
         }
 
         // generate code for loading what's on the right
@@ -287,10 +283,8 @@ public class JasminGenerator {
     }
 
     private String generateOperand(Operand operand) {
-        int register = 0;
-        if (!operand.getName().equals("this")) {
-            register = currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
-        }
+        int register = operand.getName().equals("this") ? 0 : this.currentMethod.getVarTable().get(operand.getName()).getVirtualReg();
+
         String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
         ElementType operandType = operand.getType().getTypeOfElement();
@@ -385,8 +379,9 @@ public class JasminGenerator {
 
     private String generateGetField(GetFieldInstruction getFieldInstruction) {
         Operand field = getFieldInstruction.getField();
-        int register = field.getParamId();
-        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
+        int register = Math.max(currentMethod.getVarTable().get(field.getName()).getVirtualReg(), 0);
+
+        String underscoreOrSpace = register <= 3 ? "_" : " ";
 
         StringBuilder code = new StringBuilder();
         code.append("aload").append(underscoreOrSpace).append(register).append(NL);
@@ -402,8 +397,8 @@ public class JasminGenerator {
 
     private String generatePutField(PutFieldInstruction putFieldInstruction) {
         Operand field = putFieldInstruction.getField();
-        int register = field.getParamId();
-        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
+        int register = Math.max(currentMethod.getVarTable().get(field.getName()).getVirtualReg(), 0);
+        String underscoreOrSpace = register <= 3 ? "_" : " ";
 
         StringBuilder code = new StringBuilder();
         code.append("aload").append(underscoreOrSpace).append(register).append(NL);

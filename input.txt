@@ -1,7 +1,7 @@
 class Test {
-    int f;
-
-    public int f() {
-        f = 1 + 2 + 3;
+    public int g() {
+        int[] f;
+        f[0] = f[0] + 1;
+        return 0;
     }
 }

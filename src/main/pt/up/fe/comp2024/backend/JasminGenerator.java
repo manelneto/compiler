@@ -229,7 +229,7 @@ public class JasminGenerator {
 
         if (assign.getRhs() instanceof BinaryOpInstruction operation) {
 
-            if (operation.getLeftOperand() instanceof  Operand leftOperand) {
+            if (operation.getLeftOperand() instanceof Operand leftOperand) {
                 boolean isSum = operation.getOperation().getOpType().equals(OperationType.ADD);
                 boolean isSameVar = operand.getName().equals(leftOperand.getName());
                 if (isSum && isSameVar && operation.getRightOperand() instanceof LiteralElement rightOperand) {
@@ -243,9 +243,6 @@ public class JasminGenerator {
 
         // generate code for loading what's on the right
         code.append(generators.apply(assign.getRhs()));
-
-        // get register
-
 
         String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
@@ -389,9 +386,10 @@ public class JasminGenerator {
     private String generateGetField(GetFieldInstruction getFieldInstruction) {
         Operand field = getFieldInstruction.getField();
         int register = field.getParamId();
+        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
         StringBuilder code = new StringBuilder();
-        code.append("aload ").append(register).append(NL);
+        code.append("aload").append(underscoreOrSpace).append(register).append(NL);
         this.updateStack("aload");
 
         code.append("getfield ");
@@ -405,9 +403,10 @@ public class JasminGenerator {
     private String generatePutField(PutFieldInstruction putFieldInstruction) {
         Operand field = putFieldInstruction.getField();
         int register = field.getParamId();
+        String underscoreOrSpace = register >= 0 && register <= 3 ? "_" : " ";
 
         StringBuilder code = new StringBuilder();
-        code.append("aload ").append(register).append(NL);
+        code.append("aload").append(underscoreOrSpace).append(register).append(NL);
         this.updateStack("aload");
 
         code.append(generators.apply(putFieldInstruction.getValue()));

@@ -1,18 +1,10 @@
 package pt.up.fe.comp2024.optimization;
 
-import pt.up.fe.comp.jmm.analysis.table.SymbolTable;
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
 
-public class OllirOptimizationVisitor extends AJmmVisitor<Void, String> {
-
-    private final SymbolTable symbolTable;
-
-    public OllirOptimizationVisitor(SymbolTable symbolTable) {
-        this.symbolTable = symbolTable;
-    }
-
+public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, String> {
     @Override
     protected void buildVisitor() {
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);

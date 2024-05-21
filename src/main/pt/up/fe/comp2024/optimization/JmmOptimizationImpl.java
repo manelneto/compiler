@@ -19,10 +19,13 @@ public class JmmOptimizationImpl implements JmmOptimization {
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
         if (Boolean.parseBoolean(semanticsResult.getConfig().get("optimize"))) {
-            var visitor = new OllirOptimizationVisitor(semanticsResult.getSymbolTable());
-            visitor.visit(semanticsResult.getRootNode());
+            var constantPropagationVisitor = new OllirConstantPropagationVisitor();
+            var constantFoldingVisitor = new OllirConstantFoldingVisitor();
+
+            constantPropagationVisitor.visit(semanticsResult.getRootNode());
+            constantFoldingVisitor.visit(semanticsResult.getRootNode());
         }
-        
+
         return semanticsResult;
     }
 

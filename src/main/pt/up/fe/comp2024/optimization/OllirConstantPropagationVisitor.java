@@ -4,26 +4,98 @@ import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
 
+import java.util.ArrayList;
+
 public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
+    private ArrayList<String> forbidden;
+    private ArrayList<JmmNode> propagatableNodes;
+    private ArrayList<Boolean> changed;
+
     @Override
     protected void buildVisitor() {
+        addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
+        addVisit(Kind.IF_ELSE_STMT, this::visitIfElseStmt);
+        addVisit(Kind.WHILE_STMT, this::visitIfElseStmt);
+        addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
+        addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
-    private boolean visitAssignStmt(JmmNode assignStmt, Void unused) {
-        JmmNode child = assignStmt.getChild(0);
+    private boolean visitMethodDecl(JmmNode methodDecl, Void unused) {
+        this.forbidden = new ArrayList<>();
+        this.propagatableNodes = new ArrayList<>();
+        this.changed = new ArrayList<>();
         boolean changes = false;
-        if (child.getKind().equals(Kind.INTEGER_LITERAL.toString()) || child.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
-            String name = assignStmt.get("name");
-            JmmNode parent = assignStmt.getParent();
-            parent.removeChild(assignStmt);
+        for (JmmNode child : methodDecl.getChildren()) {
+            changes = changes || visit(child);
+        }
 
-            for (JmmNode desc : parent.getDescendants(Kind.VAR_REF_EXPR)) {
-                if (desc.get("name").equals(name)) {
-                    desc.replace(child);
-                    changes = true;
-                }
+        return changes;
+    }
+
+    private boolean visitAssignStmt(JmmNode assignStmt, Void unused) {
+        boolean changes = false;
+
+        JmmNode child = assignStmt.getChild(0);
+        if (child.getKind().equals(Kind.INTEGER_LITERAL.toString()) || child.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
+            //String name = assignStmt.get("name");
+            //JmmNode parent = assignStmt.getParent();
+            //parent.removeChild(assignStmt);
+            this.propagatableNodes.add(assignStmt);
+            this.changed.add(false);
+        }
+
+        changes = visit(child);
+
+        return changes;
+    }
+
+    private boolean visitVarRefExpr(JmmNode varRefExpr, Void unused) {
+        boolean changes = false;
+        if (this.forbidden.contains(varRefExpr.get("name"))) return false;
+        for (int i = 0; i < this.propagatableNodes.size(); i++) {
+            JmmNode assignNode = this.propagatableNodes.get(i);
+            if (assignNode.get("name").equals(varRefExpr.get("name"))) {
+                JmmNode newNode = assignNode.getChild(0);
+                JmmNode varRefParent = varRefExpr.getParent();
+
+                varRefParent.add(newNode);          //TODO: como é que se adiciona uma child
+                varRefParent.removeChild(varRefExpr);
+                this.changed.set(i, true);
+                changes = true;
+                break;
+            }
+        }
+
+        return changes;
+    }
+
+
+    private boolean visitIfElseStmt(JmmNode ifElseStmt, Void unused) {
+
+        for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
+            this.forbidden.add(assign.get("name"));
+        }
+
+        boolean changes = false;
+        for (var child : ifElseStmt.getChildren()) {
+            changes = visit(child) || changes;
+        }
+        return changes;
+    }
+
+
+    private boolean visitReturnStmt(JmmNode returnStmt, Void unused) {
+        boolean changes = false;
+        changes = visit(returnStmt.getChild(0));
+
+        for (int i = 0; i < this.propagatableNodes.size(); i++) {
+            boolean propagated = this.changed.get(i);
+            JmmNode node = this.propagatableNodes.get(i);
+            if (propagated && !this.forbidden.contains(node.get("name"))) {
+                JmmNode parent = node.getParent();
+                parent.removeChild(node);
             }
         }
 

@@ -1,16 +1,18 @@
-class PropWithLoop {
-    public int foo(){
-    return 0;
-	}
+class Test {
 	public static void main(String[] args) {
-		  int a;
-    	  int i;
-    	  int res;
-    	  a = 10;
-    	  i = 0;
-    	  while (i < a){
-    	    i=i+1;
-    	  }
-    	  res = i*a;
+        int a;
+        int i;
+        int res;
+        int j;
+
+        a = 10;
+        i = 0;
+        j = i;
+
+        while (i < a) {
+            i = i + 1;
+        }
+
+        res = i * a;
 	}
 }

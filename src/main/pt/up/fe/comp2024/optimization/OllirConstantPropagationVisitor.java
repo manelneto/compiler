@@ -4,15 +4,16 @@ import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
 
-public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, String> {
+public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
     @Override
     protected void buildVisitor() {
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
-    private String visitAssignStmt(JmmNode assignStmt, Void unused) {
+    private boolean visitAssignStmt(JmmNode assignStmt, Void unused) {
         JmmNode child = assignStmt.getChild(0);
+        boolean changes = false;
         if (child.getKind().equals(Kind.INTEGER_LITERAL.toString()) || child.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
             String name = assignStmt.get("name");
             JmmNode parent = assignStmt.getParent();
@@ -21,20 +22,22 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, String> {
             for (JmmNode desc : parent.getDescendants(Kind.VAR_REF_EXPR)) {
                 if (desc.get("name").equals(name)) {
                     desc.replace(child);
+                    changes = true;
                 }
             }
         }
 
-        return "";
+        return changes;
     }
 
     /**
      * Default visitor. Visits every child node and return an empty string.
      */
-    private String defaultVisit(JmmNode node, Void unused) {
+    private boolean defaultVisit(JmmNode node, Void unused) {
+        boolean changes = false;
         for (var child : node.getChildren()) {
-            visit(child);
+            changes = visit(child) || changes;
         }
-        return "";
+        return changes;
     }
 }

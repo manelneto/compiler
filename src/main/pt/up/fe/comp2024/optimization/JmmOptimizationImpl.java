@@ -22,8 +22,14 @@ public class JmmOptimizationImpl implements JmmOptimization {
             var constantPropagationVisitor = new OllirConstantPropagationVisitor();
             var constantFoldingVisitor = new OllirConstantFoldingVisitor();
 
-            constantPropagationVisitor.visit(semanticsResult.getRootNode());
-            constantFoldingVisitor.visit(semanticsResult.getRootNode());
+            while (true) {
+                boolean constantPropagated = constantPropagationVisitor.visit(semanticsResult.getRootNode());
+                boolean constantFolded = constantFoldingVisitor.visit(semanticsResult.getRootNode());
+
+                if (!constantPropagated && !constantFolded) {
+                    break;
+                }
+            }
         }
 
         return semanticsResult;

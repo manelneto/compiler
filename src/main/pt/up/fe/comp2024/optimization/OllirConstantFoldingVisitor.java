@@ -5,14 +5,14 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp.jmm.ast.JmmNodeImpl;
 import pt.up.fe.comp2024.ast.Kind;
 
-public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, String> {
+public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, Boolean> {
     @Override
     protected void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
-    private String visitBinaryExpr(JmmNode binaryExpr, Void unused) {
+    private boolean visitBinaryExpr(JmmNode binaryExpr, Void unused) {
         JmmNode left = binaryExpr.getChild(0);
         JmmNode right = binaryExpr.getChild(1);
 
@@ -55,18 +55,20 @@ public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, String> {
                     throw new RuntimeException("Unhandled op: " + binaryExpr.get("op"));
             }
             binaryExpr.replace(newNode);
+            return true;
         }
 
-        return "";
+        return false;
     }
 
     /**
      * Default visitor. Visits every child node and return an empty string.
      */
-    private String defaultVisit(JmmNode node, Void unused) {
+    private boolean defaultVisit(JmmNode node, Void unused) {
+        boolean changes = false;
         for (var child : node.getChildren()) {
-            visit(child);
+            changes = visit(child) || changes;
         }
-        return "";
+        return changes;
     }
 }

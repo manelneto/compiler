@@ -18,7 +18,6 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         addVisit(Kind.IF_ELSE_STMT, this::visitIfElseStmt);
         addVisit(Kind.WHILE_STMT, this::visitIfElseStmt);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
-        addVisit(Kind.RETURN_STMT, this::visitReturnStmt);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -28,7 +27,16 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         this.changed = new ArrayList<>();
         boolean changes = false;
         for (JmmNode child : methodDecl.getChildren()) {
-            changes = changes || visit(child);
+            changes = visit(child) || changes;
+        }
+
+        for (int i = 0; i < this.propagatableNodes.size(); i++) {
+            boolean propagated = this.changed.get(i);
+            JmmNode node = this.propagatableNodes.get(i);
+            if (propagated && !this.forbidden.contains(node.get("name"))) {
+                JmmNode parent = node.getParent();
+                parent.removeChild(node);
+            }
         }
 
         return changes;
@@ -60,7 +68,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
                 JmmNode newNode = assignNode.getChild(0);
                 JmmNode varRefParent = varRefExpr.getParent();
 
-                varRefParent.add(newNode);          //TODO: como é que se adiciona uma child
+                varRefParent.add(newNode);
                 varRefParent.removeChild(varRefExpr);
                 this.changed.set(i, true);
                 changes = true;
@@ -71,9 +79,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         return changes;
     }
 
-
     private boolean visitIfElseStmt(JmmNode ifElseStmt, Void unused) {
-
         for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
             this.forbidden.add(assign.get("name"));
         }
@@ -82,23 +88,6 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         for (var child : ifElseStmt.getChildren()) {
             changes = visit(child) || changes;
         }
-        return changes;
-    }
-
-
-    private boolean visitReturnStmt(JmmNode returnStmt, Void unused) {
-        boolean changes = false;
-        changes = visit(returnStmt.getChild(0));
-
-        for (int i = 0; i < this.propagatableNodes.size(); i++) {
-            boolean propagated = this.changed.get(i);
-            JmmNode node = this.propagatableNodes.get(i);
-            if (propagated && !this.forbidden.contains(node.get("name"))) {
-                JmmNode parent = node.getParent();
-                parent.removeChild(node);
-            }
-        }
-
         return changes;
     }
 

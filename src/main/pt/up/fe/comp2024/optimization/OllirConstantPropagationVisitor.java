@@ -90,20 +90,18 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     }
 
     private boolean visitIfElseStmt(JmmNode ifElseStmt, Void unused) {
-        boolean changes = false;
-        changes = visit(ifElseStmt.getChild(0));
-
-        for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
-            this.forbidden.add(assign.get("name"));
-        }
+        boolean changes = visit(ifElseStmt.getChild(0));
 
         for (int i = 1; i < ifElseStmt.getChildren().size(); i++) {
-            changes = visit(ifElseStmt.getChild(i)) || changes;
-        }
+            JmmNode stmtBlock = ifElseStmt.getChild(i);
+            for (JmmNode assign : stmtBlock.getDescendants(Kind.ASSIGN_STMT)) {
+                this.forbidden.add(assign.get("name"));
+            }
+            changes = visit(stmtBlock) || changes;
 
-
-        for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
-            this.forbidden.add(assign.get("name"));
+            for (JmmNode assign : stmtBlock.getDescendants(Kind.ASSIGN_STMT)) {
+                this.forbidden.add(assign.get("name"));
+            }
         }
 
         return changes;

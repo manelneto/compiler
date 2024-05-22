@@ -8,12 +8,28 @@ class PropWithLoop {
     public int foo(int value) {
         int a;
         int b;
-        a = 10;
-        if (value < a) {
-            b = 0;
-        } else {
+        int c;
 
+        a = 10;
+        b = a; // b = 10
+
+        if (value < a) { // value < 10
+            b = 0;
+            a = 2;
+        } else {
+            b = a;
+            a = 3;
         }
-        return a;
+
+        c = 5;
+        while (a < c) { // a < 5
+            a = a + 1;
+        }
+
+        while (a < c) {
+            c = c + 1;
+        }
+
+        return c;
     }
 }

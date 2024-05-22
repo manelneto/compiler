@@ -9,7 +9,6 @@ import java.util.ArrayList;
 public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
     private ArrayList<String> forbidden;
     private ArrayList<JmmNode> propagatableNodes;
-    private ArrayList<Boolean> changed;
 
     @Override
     protected void buildVisitor() {
@@ -24,15 +23,13 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     private boolean visitMethodDecl(JmmNode methodDecl, Void unused) {
         this.forbidden = new ArrayList<>();
         this.propagatableNodes = new ArrayList<>();
-        this.changed = new ArrayList<>();
+
         boolean changes = false;
         for (JmmNode child : methodDecl.getChildren()) {
             changes = visit(child) || changes;
         }
 
-        for (int i = 0; i < this.propagatableNodes.size(); i++) {
-            //boolean propagated = this.changed.get(i); TODO: verificar se faz sentido
-            JmmNode node = this.propagatableNodes.get(i);
+        for (JmmNode node : this.propagatableNodes) {
             if (!this.forbidden.contains(node.get("name"))) {
                 JmmNode parent = node.getParent();
                 parent.removeChild(node);
@@ -46,7 +43,6 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         JmmNode child = assignStmt.getChild(0);
         if (child.getKind().equals(Kind.INTEGER_LITERAL.toString()) || child.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
             this.propagatableNodes.add(assignStmt);
-            this.changed.add(false);
         }
 
         return visit(child);
@@ -65,7 +61,6 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
 
                 varRefParent.add(newNode);
                 varRefParent.removeChild(varRefExpr);
-                this.changed.set(i, true);
                 changes = true;
                 break;
             }

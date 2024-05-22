@@ -152,6 +152,10 @@ public class TypeUtils {
 
         JmmNode parent = functionCall.getParent();
 
+        if (parent.getKind().equals(Kind.LENGTH.toString())) {
+            return new Type(INT_TYPE_NAME, true);
+        }
+
         while (!Kind.fromString(parent.getKind()).isStmt() && !parent.getKind().equals(Kind.FUNCTION_CALL.toString())) {
             parent = parent.getParent();
         }

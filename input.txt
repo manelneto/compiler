@@ -2,7 +2,7 @@ class Test {
     public int f(int factor) {
         int a;
         a = 10;
-        a = a / factor;
+        a = 127 + a;
         return a;
     }
 }

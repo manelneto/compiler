@@ -207,16 +207,12 @@ public class JasminGenerator {
 
     private String generateAssign(AssignInstruction assign) {
         StringBuilder code = new StringBuilder();
-        // TODO: assign boolean b = 1 < 2;
 
-        // store value in the stack in destination
-        Element lhs = assign.getDest();
-
-        if (!(lhs instanceof Operand operand)) {
-            throw new NotImplementedException(lhs.getClass());
+        if (!(assign.getDest() instanceof Operand dest)) {
+            throw new NotImplementedException(assign.getDest().getClass());
         }
 
-        if (operand instanceof ArrayOperand arrayOperand) {
+        if (dest instanceof ArrayOperand arrayOperand) {
             code.append(generateOperand(arrayOperand));
             code.append(generators.apply(arrayOperand.getIndexOperands().get(0)));
             code.append(generators.apply(assign.getRhs()));
@@ -225,16 +221,34 @@ public class JasminGenerator {
             return code.toString();
         }
 
-        int register = Math.max(this.currentMethod.getVarTable().get(operand.getName()).getVirtualReg(), 0);
+        int register = Math.max(this.currentMethod.getVarTable().get(dest.getName()).getVirtualReg(), 0);
 
-        if (assign.getRhs() instanceof BinaryOpInstruction operation
-                && operation.getLeftOperand() instanceof Operand leftOperand
-                && operation.getOperation().getOpType().equals(OperationType.ADD)
-                && operand.getName().equals(leftOperand.getName())
-                && operation.getRightOperand() instanceof LiteralElement rightOperand) {
-            this.updateStack("iinc");
-            code.append("iinc ").append(register).append(" ").append(rightOperand.getLiteral()).append(NL);
-            return code.toString();
+        if (assign.getRhs() instanceof BinaryOpInstruction binaryOp) {
+            // X = Y ? Z
+            if (binaryOp.getLeftOperand() instanceof Operand left && binaryOp.getRightOperand() instanceof LiteralElement right) {
+                // X = Y ? i
+                if (dest.getName().equals(left.getName())) {
+                    // X = X ? i
+                    if ((binaryOp.getOperation().getOpType().equals(OperationType.ADD) && Integer.parseInt(right.getLiteral()) <= 127)
+                            || (binaryOp.getOperation().getOpType().equals(OperationType.SUB) && Integer.parseInt(right.getLiteral()) <= 128)) {
+                        String sign = binaryOp.getOperation().getOpType().equals(OperationType.SUB) ? "-" : "";
+                        this.updateStack("iinc");
+                        code.append("iinc ").append(register).append(" ").append(sign).append(right.getLiteral()).append(NL);
+                        return code.toString();
+                    }
+                }
+            } else if (binaryOp.getLeftOperand() instanceof LiteralElement left && binaryOp.getRightOperand() instanceof Operand right) {
+                // X = i ? Y
+                if (dest.getName().equals(right.getName())) {
+                    // X = i ? X
+                    if ((binaryOp.getOperation().getOpType().equals(OperationType.ADD)
+                            && Integer.parseInt(left.getLiteral()) <= 127 && Integer.parseInt(left.getLiteral()) >= -128)) {
+                        this.updateStack("iinc");
+                        code.append("iinc ").append(register).append(" ").append(left.getLiteral()).append(NL);
+                        return code.toString();
+                    }
+                }
+            }
         }
 
         // generate code for loading what's on the right
@@ -242,7 +256,7 @@ public class JasminGenerator {
 
         String underscoreOrSpace = register <= 3 ? "_" : " ";
 
-        String operandCode = switch (operand.getType().getTypeOfElement()) {
+        String operandCode = switch (dest.getType().getTypeOfElement()) {
             case INT32, BOOLEAN -> "istore";
             case OBJECTREF, CLASS, STRING, ARRAYREF -> "astore";
             case THIS, VOID -> null;

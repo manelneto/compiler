@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
     private final HashMap<String, JmmNode> globalConstants = new HashMap<>();
-
+    private final HashMap<String, Boolean> canRemove = new HashMap<>();
 
     @Override
     protected void buildVisitor() {
@@ -67,25 +67,10 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     }
 
     private boolean visitIfElseStmt(JmmNode ifElseStmt, Void unused) {
-        JmmNode expr = ifElseStmt.getChild(0);
-        boolean propagated = visit(expr);
+        boolean propagated = false;
 
-        for (JmmNode ifStmtChild : ifElseStmt.getChild(1).getChildren()) {
-            propagated = visit(ifStmtChild) || propagated;
-
-            if (ifStmtChild.getKind().equals(Kind.ASSIGN_STMT.toString())) {
-                String name = ifStmtChild.get("name");
-                this.globalConstants.remove(name);
-            }
-        }
-
-        for (JmmNode elseStmtChild : ifElseStmt.getChild(2).getChildren()) {
-            propagated = visit(elseStmtChild) || propagated;
-
-            if (elseStmtChild.getKind().equals(Kind.ASSIGN_STMT.toString())) {
-                String name = elseStmtChild.get("name");
-                this.globalConstants.remove(name);
-            }
+        for (JmmNode child : ifElseStmt.getChildren()) {
+            propagated = visit(child) || propagated;
         }
 
         return propagated;

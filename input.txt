@@ -1,18 +1,13 @@
 class Test {
-	public static void main(String[] args) {
+    public int f() {
         int a;
-        int i;
-        int res;
-        int j;
+        a = 0 + 0 + 0;
+        return a;
+    }
 
-        a = 10;
-        i = 0;
-        j = i;
-
-        while (i < a) {
-            i = i + 1;
-        }
-
-        res = i * a;
-	}
+    public int g() {
+        int b;
+        b = 0 + 0 + 0;
+        return b;
+    }
 }

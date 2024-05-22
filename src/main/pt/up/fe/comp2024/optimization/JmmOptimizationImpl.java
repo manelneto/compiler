@@ -37,6 +37,17 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
+        /*ClassUnit c = ollirResult.getOllirClass();
+
+        int registers = Integer.parseInt(ollirResult.getConfig().get("registerAllocation"));
+
+        OllirRegisterAllocationVisitor ollirRegisterAllocationVisitor = new OllirRegisterAllocationVisitor(registers);
+
+        for (Method method : c.getMethods()) {
+            method.buildCFG();
+            //ollirRegisterAllocationVisitor.visit(method);
+        }*/
+
         return ollirResult;
     }
 }

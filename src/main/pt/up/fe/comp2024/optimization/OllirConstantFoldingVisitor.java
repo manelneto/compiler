@@ -58,7 +58,13 @@ public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, Boolean> {
             return true;
         }
 
-        return false;
+        boolean changes = false;
+
+        for (JmmNode child : binaryExpr.getChildren()) {
+            changes = visit(child) || changes;
+        }
+
+        return changes;
     }
 
     /**

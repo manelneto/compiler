@@ -94,9 +94,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
 
         for (int i = 1; i < ifElseStmt.getChildren().size(); i++) {
             JmmNode stmtBlock = ifElseStmt.getChild(i);
-            for (JmmNode assign : stmtBlock.getDescendants(Kind.ASSIGN_STMT)) {
-                this.forbidden.add(assign.get("name"));
-            }
+
             changes = visit(stmtBlock) || changes;
 
             for (JmmNode assign : stmtBlock.getDescendants(Kind.ASSIGN_STMT)) {

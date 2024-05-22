@@ -41,11 +41,14 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
 
     private boolean visitAssignStmt(JmmNode assignStmt, Void unused) {
         JmmNode child = assignStmt.getChild(0);
+        boolean changes = visit(child);
         if (child.getKind().equals(Kind.INTEGER_LITERAL.toString()) || child.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
             this.propagatableNodes.add(assignStmt);
+        } else {
+            this.forbidden.add(assignStmt.get("name"));
         }
 
-        return visit(child);
+        return changes;
     }
 
     private boolean visitVarRefExpr(JmmNode varRefExpr, Void unused) {
@@ -57,10 +60,8 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
             JmmNode assignNode = this.propagatableNodes.get(i);
             if (assignNode.get("name").equals(varRefExpr.get("name"))) {
                 JmmNode newNode = assignNode.getChild(0);
-                JmmNode varRefParent = varRefExpr.getParent();
 
-                varRefParent.add(newNode);
-                varRefParent.removeChild(varRefExpr);
+                varRefExpr.replace(newNode);
                 changes = true;
                 break;
             }

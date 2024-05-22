@@ -1,9 +1,8 @@
-import ioPlus;
-
 class Test {
-    public int f() {
-        int i;
-        i = ioPlus.foo().length;
-        return i;
+    public int f(int factor) {
+        int a;
+        a = 10;
+        a = a / factor;
+        return a;
     }
 }

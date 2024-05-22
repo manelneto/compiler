@@ -6,10 +6,11 @@ import pt.up.fe.comp2024.ast.Kind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 
 public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
     private final HashMap<String, JmmNode> globalConstants = new HashMap<>();
-    private final HashMap<String, Boolean> canRemove = new HashMap<>();
+    private final HashSet<JmmNode> canRemove = new HashSet<>();
 
     @Override
     protected void buildVisitor() {
@@ -30,8 +31,10 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
             propagated = visit(stmt) || propagated;
         }
 
-        for (JmmNode constant : this.globalConstants.values()) {
-            constant.removeParent();
+        for (JmmNode stmt : this.canRemove) {
+            if (stmt.getParent() != null) {
+                stmt.getParent().removeChild(stmt);
+            }
         }
 
         return propagated;
@@ -40,6 +43,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     private boolean visitStmtBlock(JmmNode stmtBlock, Void unused) {
         boolean propagated = false;
         ArrayList<String> localConstants = new ArrayList<>();
+        ArrayList<JmmNode> localCanRemove = new ArrayList<>();
 
         for (JmmNode stmt : stmtBlock.getChildren()) {
             if (stmt.getKind().equals(Kind.ASSIGN_STMT.toString())) {
@@ -49,7 +53,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
                     String name = stmt.get("name");
                     this.globalConstants.put(name, expr);
                     localConstants.add(name);
-                    expr.removeParent();
+                    localCanRemove.add(stmt);
                 }
             }
 
@@ -59,8 +63,13 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         }
 
         for (String constant : localConstants) {
-            this.globalConstants.get(constant).removeParent();
             this.globalConstants.remove(constant);
+        }
+
+        for (JmmNode stmt : localCanRemove) {
+            if (stmt.getParent() != null) {
+                stmt.getParent().removeChild(stmt);
+            }
         }
 
         return propagated;
@@ -103,6 +112,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
 
         if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
             this.globalConstants.put(name, expr);
+            this.canRemove.add(assignStmt);
         } else {
             propagated = visit(expr);
             this.globalConstants.remove(name);

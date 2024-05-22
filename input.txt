@@ -1,7 +1,10 @@
 class PropWithLoop {
     public int foo(int factor) {
         int a;
-        if (true) {
+        a = 10;
+        //a = a / factor;
+
+        if (a < factor) {
         a = 10;
         a = a / factor;
         } else {}

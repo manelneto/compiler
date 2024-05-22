@@ -1,13 +1,14 @@
+import ioPlus;
+
 class Test {
     public int f() {
-        int a;
-        a = 0 + 0 + 0;
-        return a;
-    }
-
-    public int g() {
-        int b;
-        b = 0 + 0 + 0;
-        return b;
+        int c;
+        int s;
+        c = 0;
+        s = 10;
+        c = 1;
+        ioPlus.printResult(s);
+        c = 2;
+        return c;
     }
 }

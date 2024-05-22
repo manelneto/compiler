@@ -31,9 +31,9 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         }
 
         for (int i = 0; i < this.propagatableNodes.size(); i++) {
-            boolean propagated = this.changed.get(i);
+            //boolean propagated = this.changed.get(i); TODO: verificar se faz sentido
             JmmNode node = this.propagatableNodes.get(i);
-            if (propagated && !this.forbidden.contains(node.get("name"))) {
+            if (!this.forbidden.contains(node.get("name"))) {
                 JmmNode parent = node.getParent();
                 parent.removeChild(node);
             }
@@ -57,7 +57,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         if (this.forbidden.contains(varRefExpr.get("name")))
             return false;
 
-        for (int i = 0; i < this.propagatableNodes.size(); i++) {
+        for (int i = this.propagatableNodes.size() - 1; i >= 0; i--) {
             JmmNode assignNode = this.propagatableNodes.get(i);
             if (assignNode.get("name").equals(varRefExpr.get("name"))) {
                 JmmNode newNode = assignNode.getChild(0);

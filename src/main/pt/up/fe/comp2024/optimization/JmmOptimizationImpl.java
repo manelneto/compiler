@@ -1,5 +1,6 @@
 package pt.up.fe.comp2024.optimization;
 
+import org.specs.comp.ollir.ClassUnit;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
@@ -37,16 +38,17 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        /*ClassUnit c = ollirResult.getOllirClass();
+        ClassUnit c = ollirResult.getOllirClass();
+        c.buildCFGs();
+        c.buildVarTables();
 
-        int registers = Integer.parseInt(ollirResult.getConfig().get("registerAllocation"));
+        if (ollirResult.getConfig().containsKey("registerAllocation")) {
+            int registers = Integer.parseInt(ollirResult.getConfig().get("registerAllocation"));
 
-        OllirRegisterAllocationVisitor ollirRegisterAllocationVisitor = new OllirRegisterAllocationVisitor(registers);
+            OllirRegisterAllocationVisitor ollirRegisterAllocationVisitor = new OllirRegisterAllocationVisitor(ollirResult, registers);
 
-        for (Method method : c.getMethods()) {
-            method.buildCFG();
-            //ollirRegisterAllocationVisitor.visit(method);
-        }*/
+            //ollirRegisterAllocationVisitor.visit(ol);
+        }
 
         return ollirResult;
     }

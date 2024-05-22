@@ -2,12 +2,14 @@ package pt.up.fe.comp2024.optimization;
 
 import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
+import pt.up.fe.comp.jmm.ollir.OllirResult;
 import pt.up.fe.comp2024.ast.Kind;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 
 public class OllirRegisterAllocationVisitor extends AJmmVisitor<Void, Boolean> {
+    private final OllirResult ollirResult;
     private final int size;
     private final ArrayList<String> name;
     private final HashMap<String, Integer> next;
@@ -15,7 +17,8 @@ public class OllirRegisterAllocationVisitor extends AJmmVisitor<Void, Boolean> {
     private final ArrayList<Integer> stack;
     private int stackTop;
 
-    public OllirRegisterAllocationVisitor(int registers) {
+    public OllirRegisterAllocationVisitor(OllirResult ollirResult, int registers) {
+        this.ollirResult = ollirResult;
         this.size = registers;
         this.name = new ArrayList<>();
         this.next = new HashMap<>();
@@ -36,7 +39,7 @@ public class OllirRegisterAllocationVisitor extends AJmmVisitor<Void, Boolean> {
     private void initialize() {
         for (int i = this.size - 1; i > 0; i--) {
             this.name.set(i, "");
-            // next[i] = infinite;
+            //ollirResult.getOllirClass()
             this.free.set(i, true);
             this.stack.add(i);
         }

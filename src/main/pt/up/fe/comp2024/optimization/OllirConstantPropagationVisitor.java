@@ -5,9 +5,10 @@ import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
-    private ArrayList<String> forbidden;
+    private HashSet<String> forbidden;
     private ArrayList<JmmNode> propagatableNodes;
 
     @Override
@@ -21,7 +22,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     }
 
     private boolean visitMethodDecl(JmmNode methodDecl, Void unused) {
-        this.forbidden = new ArrayList<>();
+        this.forbidden = new HashSet<>();
         this.propagatableNodes = new ArrayList<>();
 
         boolean changes = false;
@@ -44,6 +45,7 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         boolean changes = visit(child);
         if (child.getKind().equals(Kind.INTEGER_LITERAL.toString()) || child.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
             this.propagatableNodes.add(assignStmt);
+            this.forbidden.remove(assignStmt.get("name"));
         } else {
             this.forbidden.add(assignStmt.get("name"));
         }
@@ -70,15 +72,20 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         return changes;
     }
 
-    private boolean visitConditionalStmt(JmmNode ifElseStmt, Void unused) {
-        for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
+    private boolean visitConditionalStmt(JmmNode conditionalStmt, Void unused) {
+        for (JmmNode assign : conditionalStmt.getDescendants(Kind.ASSIGN_STMT)) {
             this.forbidden.add(assign.get("name"));
         }
 
         boolean changes = false;
-        for (var child : ifElseStmt.getChildren()) {
+        for (var child : conditionalStmt.getChildren()) {
             changes = visit(child) || changes;
         }
+
+        for (JmmNode assign : conditionalStmt.getDescendants(Kind.ASSIGN_STMT)) {
+            this.forbidden.add(assign.get("name"));
+        }
+
         return changes;
     }
 

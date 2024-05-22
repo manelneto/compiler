@@ -1,8 +1,18 @@
-class Test {
-    public int f(int factor) {
-        int a;
+class PropWithLoop {
+    public int foo(){
+      int a;
+      int i;
+      int res;
+      a = 10;
+      i = 0;
+      while (i < a){
+        i=i+1;
         a = 10;
-        a = 127 + a;
-        return a;
+        res = a + 2;
+      }
+      res = i*a;
+      return res;
+    }
+    public static void main(String[] args) {
     }
 }

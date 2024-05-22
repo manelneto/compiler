@@ -15,8 +15,8 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     protected void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
         addVisit(Kind.ASSIGN_STMT, this::visitAssignStmt);
-        addVisit(Kind.IF_ELSE_STMT, this::visitConditionalStmt);
-        addVisit(Kind.WHILE_STMT, this::visitConditionalStmt);
+        addVisit(Kind.IF_ELSE_STMT, this::visitIfElseStmt);
+        addVisit(Kind.WHILE_STMT, this::visitWhileStmt);
         addVisit(Kind.VAR_REF_EXPR, this::visitVarRefExpr);
         setDefaultVisit(this::defaultVisit);
     }
@@ -72,22 +72,43 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         return changes;
     }
 
-    private boolean visitConditionalStmt(JmmNode conditionalStmt, Void unused) {
-        for (JmmNode assign : conditionalStmt.getDescendants(Kind.ASSIGN_STMT)) {
+    private boolean visitWhileStmt(JmmNode whileStmt, Void unused) {
+        for (JmmNode assign : whileStmt.getDescendants(Kind.ASSIGN_STMT)) {
             this.forbidden.add(assign.get("name"));
         }
 
         boolean changes = false;
-        for (var child : conditionalStmt.getChildren()) {
+        for (var child : whileStmt.getChildren()) {
             changes = visit(child) || changes;
         }
 
-        for (JmmNode assign : conditionalStmt.getDescendants(Kind.ASSIGN_STMT)) {
+        for (JmmNode assign : whileStmt.getDescendants(Kind.ASSIGN_STMT)) {
             this.forbidden.add(assign.get("name"));
         }
 
         return changes;
     }
+
+    private boolean visitIfElseStmt(JmmNode ifElseStmt, Void unused) {
+        boolean changes = false;
+        changes = visit(ifElseStmt.getChild(0));
+
+        for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
+            this.forbidden.add(assign.get("name"));
+        }
+
+        for (int i = 1; i < ifElseStmt.getChildren().size(); i++) {
+            changes = visit(ifElseStmt.getChild(i)) || changes;
+        }
+
+
+        for (JmmNode assign : ifElseStmt.getDescendants(Kind.ASSIGN_STMT)) {
+            this.forbidden.add(assign.get("name"));
+        }
+
+        return changes;
+    }
+
 
     /**
      * Default visitor. Visits every child node and return an empty string.

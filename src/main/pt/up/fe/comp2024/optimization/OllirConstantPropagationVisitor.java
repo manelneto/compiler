@@ -112,13 +112,18 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
     }
 
     private boolean visitAssignStmt(JmmNode assignStmt, Void unused) {
+        boolean propagated = false;
+        String name = assignStmt.get("name");
         JmmNode expr = assignStmt.getChild(0);
 
         if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
-            this.globalConstants.put(assignStmt.get("name"), expr);
+            this.globalConstants.put(name, expr);
+        } else {
+            propagated = visit(expr);
+            this.globalConstants.remove(name);
         }
 
-        return visit(expr);
+        return propagated;
     }
 
     private boolean visitVarRefExpr(JmmNode varRefExpr, Void unused) {

@@ -110,7 +110,7 @@ public class TypeUtils {
         assert (Kind.fromString(expr.getKind()).isExpr());
 
         if (expr.hasAttribute("type") && expr.hasAttribute("isArray")) {
-            return new Type(expr.get("type"), expr.getObject("isArray", Boolean.class));
+            return new Type(expr.get("type"), Boolean.parseBoolean(expr.get("isArray")));
         }
 
         Kind kind = Kind.fromString(expr.getKind());

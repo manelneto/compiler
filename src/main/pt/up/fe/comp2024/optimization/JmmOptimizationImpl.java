@@ -1,6 +1,5 @@
 package pt.up.fe.comp2024.optimization;
 
-import org.specs.comp.ollir.ClassUnit;
 import pt.up.fe.comp.jmm.analysis.JmmSemanticsResult;
 import pt.up.fe.comp.jmm.ollir.JmmOptimization;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
@@ -19,7 +18,7 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public JmmSemanticsResult optimize(JmmSemanticsResult semanticsResult) {
-        if (Boolean.parseBoolean(semanticsResult.getConfig().get("optimize"))) {
+        if (Boolean.parseBoolean(semanticsResult.getConfig().get("optimize")) || semanticsResult.getConfig().containsKey("registerAllocation")) {
             var constantPropagationVisitor = new OllirConstantPropagationVisitor();
             var constantFoldingVisitor = new OllirConstantFoldingVisitor();
 
@@ -38,16 +37,15 @@ public class JmmOptimizationImpl implements JmmOptimization {
 
     @Override
     public OllirResult optimize(OllirResult ollirResult) {
-        ClassUnit c = ollirResult.getOllirClass();
-        c.buildCFGs();
-        c.buildVarTables();
-
         if (ollirResult.getConfig().containsKey("registerAllocation")) {
+            /*ClassUnit classUnit = ollirResult.getOllirClass();
+            classUnit.buildCFGs();
+
             int registers = Integer.parseInt(ollirResult.getConfig().get("registerAllocation"));
 
             OllirRegisterAllocationVisitor ollirRegisterAllocationVisitor = new OllirRegisterAllocationVisitor(ollirResult, registers);
 
-            //ollirRegisterAllocationVisitor.visit(ol);
+            //ollirRegisterAllocationVisitor.visit(ol);*/
         }
 
         return ollirResult;

@@ -1,48 +1,42 @@
 package pt.up.fe.comp2024.optimization;
 
-import pt.up.fe.comp.jmm.ast.AJmmVisitor;
-import pt.up.fe.comp.jmm.ast.JmmNode;
+import org.specs.comp.ollir.*;
 import pt.up.fe.comp.jmm.ollir.OllirResult;
-import pt.up.fe.comp2024.ast.Kind;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.HashSet;
 
-public class OllirRegisterAllocationVisitor extends AJmmVisitor<Void, Boolean> {
-    private final OllirResult ollirResult;
-    private final int size;
-    private final ArrayList<String> name;
-    private final HashMap<String, Integer> next;
-    private final ArrayList<Boolean> free;
-    private final ArrayList<Integer> stack;
-    private int stackTop;
+public class OllirRegisterAllocationVisitor {
 
-    public OllirRegisterAllocationVisitor(OllirResult ollirResult, int registers) {
-        this.ollirResult = ollirResult;
-        this.size = registers;
-        this.name = new ArrayList<>();
-        this.next = new HashMap<>();
-        this.free = new ArrayList<>();
-        this.stack = new ArrayList<>();
-        this.stackTop = -1;
-    }
-
-    @Override
-    protected void buildVisitor() {
-        addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
-    }
-
-    private boolean visitMethodDecl(JmmNode methodDecl, Void unused) {
-        return false;
-    }
-
-    private void initialize() {
-        for (int i = this.size - 1; i > 0; i--) {
-            this.name.set(i, "");
-            //ollirResult.getOllirClass()
-            this.free.set(i, true);
-            this.stack.add(i);
+    private void livenessAnalysis(OllirResult ollirResult) {
+        for (Method method : ollirResult.getOllirClass().getMethods()) {
+            for (Instruction instruction : method.getInstructions()) {
+                HashSet<String> def = this.calculateDef(instruction);
+                //HashSet<String> use = this.calculateUse(instruction);
+                //HashSet<String> in = this.calculateIn(instruction);
+                //HashSet<String> out = this.calculateOut(instruction);
+            }
         }
-        this.stackTop = this.size - 1;
+    }
+
+    private HashSet<String> calculateDef(Instruction instruction) {
+        HashSet<String> def = new HashSet<>();
+
+        if (instruction instanceof AssignInstruction assignInstruction) {
+            Operand dest = (Operand) assignInstruction.getDest();
+            def.add(dest.getName());
+        } else if (instruction instanceof PutFieldInstruction putFieldInstruction) {
+            Operand field = putFieldInstruction.getField();
+            def.add(field.getName());
+        }
+
+        return def;
+    }
+
+    private HashSet<String> calculateRead(Instruction instruction) {
+        HashSet<String> read = new HashSet<>();
+
+        //if (instruction instanceof )
+
+        return read;
     }
 }

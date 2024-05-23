@@ -9,6 +9,7 @@ public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, Boolean> {
     @Override
     protected void buildVisitor() {
         addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
+        addVisit(Kind.PAREN_EXPR, this::visitParenExpr);
         setDefaultVisit(this::defaultVisit);
     }
 
@@ -67,9 +68,17 @@ public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, Boolean> {
         return changes;
     }
 
-    /**
-     * Default visitor. Visits every child node and return an empty string.
-     */
+    private boolean visitParenExpr(JmmNode parentExpr, Void unused) {
+        JmmNode expr = parentExpr.getChild(0);
+
+        if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
+            parentExpr.replace(expr);
+            return true;
+        }
+
+        return visit(expr);
+    }
+
     private boolean defaultVisit(JmmNode node, Void unused) {
         boolean changes = false;
         for (var child : node.getChildren()) {

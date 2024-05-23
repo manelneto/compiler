@@ -2,15 +2,8 @@ class PropWithLoop {
     public int f(int factor) {
         int a;
         a = 10;
-
-        if (factor < a) {
-
-        } else {
-
-        }
-
-        a = a / factor;
-
+        a = factor;
+        a = 15;
         return a;
     }
 }

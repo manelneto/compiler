@@ -1,16 +1,35 @@
 class PropWithLoop {
-    public int foo(){
-	  int a;
-	  int i;
-	  int res;
-	  a = 10;
-	  i = 0;
-	  while (i < a){
-	    i=i+1;
-	  }
-	  res = i*a;
-	  return res;
-	}
-	public static void main(String[] args) {
-	}
+    public static void main(String[] args) {
+        PropWithLoop p;
+        p = new PropWithLoop();
+        p.foo(5);
+    }
+
+    public int foo(int value) {
+        int a;
+        int b;
+        int c;
+
+        a = 10;
+        b = a; // b = 10
+
+        if (value < a) { // value < 10
+            b = 0;
+            a = 2;
+        } else {
+            b = a;
+            a = 3;
+        }
+
+        c = 5;
+        while (a < c) { // a < 5
+            a = a + 1;
+        }
+
+        while (a < c) {
+            c = c + 1;
+        }
+
+        return c;
+    }
 }

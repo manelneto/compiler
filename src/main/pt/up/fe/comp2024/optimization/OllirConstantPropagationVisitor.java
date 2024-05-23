@@ -76,10 +76,18 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<HashMap<String,
     private boolean visitIfElseStmt(JmmNode ifElseStmt, HashMap<String, JmmNode> constants) {
         HashMap<String, JmmNode> ifConstants = new HashMap<>(constants);
         HashMap<String, JmmNode> elseConstants = new HashMap<>(constants);
-        
+
         boolean propagated = visit(ifElseStmt.getChild(0), constants);
         propagated = visit(ifElseStmt.getChild(1), ifConstants) || propagated;
         propagated = visit(ifElseStmt.getChild(2), elseConstants) || propagated;
+
+        constants.clear();
+
+        for (String constant : ifConstants.keySet()) {
+            if (elseConstants.containsKey(constant)) {
+                constants.put(constant, ifConstants.get(constant));
+            }
+        }
 
         return propagated;
     }

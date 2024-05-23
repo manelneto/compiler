@@ -1,3 +1,24 @@
 # Comp2024 Project
 
-Contains a reference implementation for an initial version of the project that supports a small portion of Java--.
+## Group members
+
+- Manuel Ramos Leite Carvalho Neto (up202108744@edu.fe.up.pt)
+- Matilde Isabel da Silva Simões (up202108782@edu.fe.up.pt)
+- Pedro Vidal Marcelino (up202108754@edu.fe.up.pt)
+
+## Work Distribution
+
+- Manuel Ramos Leite Carvalho Neto - 33.33 %
+- Matilde Isabel da Silva Simões - 33.33 %
+- Pedro Vidal Marcelino - 33.33 %
+
+## Self-Assessment
+
+- We think our project deserves a 19,3 out of 20.
+
+## Extra Elements
+
+- Our project supports:
+    - Constant Propagation
+    - Constant Folding
+    - Low Cost Instructions (`iload_x`, `istore_x`, `astore_x`, `aload_x`, `iconst_x`, `bipush`, `sipush`, `ldc`, `iinc`, `iflt`, `ifne`, ...)

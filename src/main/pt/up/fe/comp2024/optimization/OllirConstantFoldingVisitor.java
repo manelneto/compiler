@@ -8,9 +8,39 @@ import pt.up.fe.comp2024.ast.Kind;
 public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, Boolean> {
     @Override
     protected void buildVisitor() {
-        addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         addVisit(Kind.PAREN_EXPR, this::visitParenExpr);
+        addVisit(Kind.UNARY_EXPR, this::visitUnaryExpr);
+        addVisit(Kind.BINARY_EXPR, this::visitBinaryExpr);
         setDefaultVisit(this::defaultVisit);
+    }
+
+    private boolean visitParenExpr(JmmNode parentExpr, Void unused) {
+        JmmNode expr = parentExpr.getChild(0);
+
+        if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
+            parentExpr.replace(expr);
+            return true;
+        }
+
+        return visit(expr);
+    }
+
+    private boolean visitUnaryExpr(JmmNode unaryExpr, Void unused) {
+        JmmNode expr = unaryExpr.getChild(0);
+
+        if (expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
+            String value = expr.get("value");
+            JmmNode newNode = new JmmNodeImpl(Kind.BOOLEAN_LITERAL.toString());
+            if (value.equals("true")) {
+                newNode.putObject("value", "false");
+            } else {
+                newNode.putObject("value", "true");
+            }
+            unaryExpr.replace(newNode);
+            return true;
+        }
+
+        return visit(expr);
     }
 
     private boolean visitBinaryExpr(JmmNode binaryExpr, Void unused) {
@@ -59,31 +89,22 @@ public class OllirConstantFoldingVisitor extends AJmmVisitor<Void, Boolean> {
             return true;
         }
 
-        boolean changes = false;
+        boolean folded = false;
 
         for (JmmNode child : binaryExpr.getChildren()) {
-            changes = visit(child) || changes;
+            folded = visit(child) || folded;
         }
 
-        return changes;
-    }
-
-    private boolean visitParenExpr(JmmNode parentExpr, Void unused) {
-        JmmNode expr = parentExpr.getChild(0);
-
-        if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
-            parentExpr.replace(expr);
-            return true;
-        }
-
-        return visit(expr);
+        return folded;
     }
 
     private boolean defaultVisit(JmmNode node, Void unused) {
-        boolean changes = false;
+        boolean folded = false;
+
         for (var child : node.getChildren()) {
-            changes = visit(child) || changes;
+            folded = visit(child) || folded;
         }
-        return changes;
+
+        return folded;
     }
 }

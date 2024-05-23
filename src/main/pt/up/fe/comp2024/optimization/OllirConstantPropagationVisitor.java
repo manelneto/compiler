@@ -4,14 +4,10 @@ import pt.up.fe.comp.jmm.ast.AJmmVisitor;
 import pt.up.fe.comp.jmm.ast.JmmNode;
 import pt.up.fe.comp2024.ast.Kind;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.Optional;
 
-public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> {
-    private final HashMap<String, JmmNode> globalConstants = new HashMap<>();
-    private final HashSet<JmmNode> canRemove = new HashSet<>();
-
+public class OllirConstantPropagationVisitor extends AJmmVisitor<HashMap<String, JmmNode>, Boolean> {
     @Override
     protected void buildVisitor() {
         addVisit(Kind.METHOD_DECL, this::visitMethodDecl);
@@ -24,119 +20,124 @@ public class OllirConstantPropagationVisitor extends AJmmVisitor<Void, Boolean> 
         setDefaultVisit(this::defaultVisit);
     }
 
-    private boolean visitMethodDecl(JmmNode methodDecl, Void unused) {
+    private boolean visitMethodDecl(JmmNode methodDecl, HashMap<String, JmmNode> unused) {
         boolean propagated = false;
+
+        HashMap<String, JmmNode> constants = new HashMap<>();
 
         for (JmmNode stmt : methodDecl.getChildren()) {
-            propagated = visit(stmt) || propagated;
-        }
-
-        for (JmmNode stmt : this.canRemove) {
-            if (stmt.getParent() != null) {
-                stmt.getParent().removeChild(stmt);
-            }
-        }
-
-        return propagated;
-    }
-
-    private boolean visitStmtBlock(JmmNode stmtBlock, Void unused) {
-        boolean propagated = false;
-        ArrayList<String> localConstants = new ArrayList<>();
-        ArrayList<JmmNode> localCanRemove = new ArrayList<>();
-
-        for (JmmNode stmt : stmtBlock.getChildren()) {
             if (stmt.getKind().equals(Kind.ASSIGN_STMT.toString())) {
                 JmmNode expr = stmt.getChild(0);
-
                 if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
-                    String name = stmt.get("name");
-                    this.globalConstants.put(name, expr);
-                    localConstants.add(name);
-                    localCanRemove.add(stmt);
+                    constants.put(stmt.get("name"), expr);
                 }
             }
 
-            for (JmmNode child : stmt.getChildren()) {
-                propagated = visit(child) || propagated;
-            }
+            propagated = visit(stmt, constants) || propagated;
         }
 
-        for (String constant : localConstants) {
-            this.globalConstants.remove(constant);
-        }
-
-        for (JmmNode stmt : localCanRemove) {
-            if (stmt.getParent() != null) {
-                stmt.getParent().removeChild(stmt);
+        for (JmmNode constant : constants.values()) {
+            Optional<JmmNode> optional = constant.getAncestor(Kind.ASSIGN_STMT);
+            if (optional.isPresent()) {
+                JmmNode assign = optional.get();
+                assign.getParent().removeChild(assign.getIndexOfSelf());
             }
         }
 
         return propagated;
     }
 
-    private boolean visitIfElseStmt(JmmNode ifElseStmt, Void unused) {
+    private boolean visitStmtBlock(JmmNode stmtBlock, HashMap<String, JmmNode> constants) {
         boolean propagated = false;
+        HashMap<String, JmmNode> localConstants = new HashMap<>();
 
-        for (JmmNode child : ifElseStmt.getChildren()) {
-            propagated = visit(child) || propagated;
+        for (JmmNode stmt : stmtBlock.getChildren()) {
+            if (stmt.getKind().equals(Kind.ASSIGN_STMT.toString())) {
+                String name = stmt.get("name");
+                constants.remove(name);
+
+                JmmNode expr = stmt.getChild(0);
+                if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
+                    constants.put(name, expr);
+                    localConstants.put(name, expr);
+                }
+            }
+
+            propagated = visit(stmt, constants) || propagated;
+        }
+
+        for (String localConstant : localConstants.keySet()) {
+            constants.remove(localConstant);
         }
 
         return propagated;
     }
 
-    private boolean visitWhileStmt(JmmNode whileStmt, Void unused) {
+    private boolean visitIfElseStmt(JmmNode ifElseStmt, HashMap<String, JmmNode> constants) {
+        HashMap<String, JmmNode> ifConstants = new HashMap<>(constants);
+        HashMap<String, JmmNode> elseConstants = new HashMap<>(constants);
+        
+        boolean propagated = visit(ifElseStmt.getChild(0), constants);
+        propagated = visit(ifElseStmt.getChild(1), ifConstants) || propagated;
+        propagated = visit(ifElseStmt.getChild(2), elseConstants) || propagated;
+
+        return propagated;
+    }
+
+    private boolean visitWhileStmt(JmmNode whileStmt, HashMap<String, JmmNode> constants) {
         boolean propagated = false;
+        HashMap<String, JmmNode> localConstants = new HashMap<>();
+
+        for (JmmNode assignStmt : whileStmt.getChild(1).getDescendants(Kind.ASSIGN_STMT)) {
+            constants.remove(assignStmt.get("name"));
+        }
 
         for (JmmNode whileStmtChild : whileStmt.getChild(1).getChildren()) {
             if (whileStmtChild.getKind().equals(Kind.ASSIGN_STMT.toString())) {
                 String name = whileStmtChild.get("name");
-                this.globalConstants.remove(name);
+
+                JmmNode expr = whileStmtChild.getChild(0);
+                if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
+                    constants.put(name, expr);
+                    localConstants.put(name, expr);
+                }
             }
 
-            propagated = visit(whileStmtChild) || propagated;
+            propagated = visit(whileStmtChild, constants) || propagated;
+        }
+
+        for (String localConstant : localConstants.keySet()) {
+            constants.remove(localConstant);
         }
 
         JmmNode expr = whileStmt.getChild(0);
-        return visit(expr) || propagated;
+        return visit(expr, constants) || propagated;
     }
 
-    private boolean visitSimpleStmt(JmmNode simpleStmt, Void unused) {
-        return visit(simpleStmt.getChild(0));
+    private boolean visitSimpleStmt(JmmNode simpleStmt, HashMap<String, JmmNode> constants) {
+        return visit(simpleStmt.getChild(0), constants);
     }
 
-    private boolean visitAssignStmt(JmmNode assignStmt, Void unused) {
-        boolean propagated = false;
-        String name = assignStmt.get("name");
-        JmmNode expr = assignStmt.getChild(0);
-
-        if (expr.getKind().equals(Kind.INTEGER_LITERAL.toString()) || expr.getKind().equals(Kind.BOOLEAN_LITERAL.toString())) {
-            this.globalConstants.put(name, expr);
-            this.canRemove.add(assignStmt);
-        } else {
-            propagated = visit(expr);
-            this.globalConstants.remove(name);
-        }
-
-        return propagated;
+    private boolean visitAssignStmt(JmmNode assignStmt, HashMap<String, JmmNode> constants) {
+        return visit(assignStmt.getChild(0), constants);
     }
 
-    private boolean visitVarRefExpr(JmmNode varRefExpr, Void unused) {
+    private boolean visitVarRefExpr(JmmNode varRefExpr, HashMap<String, JmmNode> constants) {
         String name = varRefExpr.get("name");
 
-        if (this.globalConstants.containsKey(name)) {
-            varRefExpr.replace(this.globalConstants.get(name));
+        if (constants.containsKey(name)) {
+            varRefExpr.replace(constants.get(name));
             return true;
         }
 
         return false;
     }
 
-    private boolean defaultVisit(JmmNode node, Void unused) {
+    private boolean defaultVisit(JmmNode node, HashMap<String, JmmNode> constants) {
         boolean propagated = false;
 
         for (JmmNode child : node.getChildren()) {
-            propagated = visit(child) || propagated;
+            propagated = visit(child, constants) || propagated;
         }
 
         return propagated;
